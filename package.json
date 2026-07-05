@@ -1,0 +1,16 @@
+{
+  "name": "rentrik-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Rentrik — rentabilidad de alquiler vacacional (monorepo)",
+  "scripts": {
+    "build": "cd client && npm install && npm run build && cd ../server && npm install && npm run build",
+    "db:deploy": "cd server && npm run db:deploy",
+    "start": "cd server && npm start",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

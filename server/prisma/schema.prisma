@@ -1,0 +1,162 @@
+// Rentrik — esquema de base de datos
+// Para migrar a PostgreSQL: cambia provider a "postgresql" y ajusta DATABASE_URL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  companyName  String? // nombre de la gestora (marca propia en Plan Agencia)
+  plan         String   @default("starter") // starter | gestor | pro | agencia
+  createdAt    DateTime @default(now())
+
+  // Moneda e impuestos
+  currency String @default("EUR") // EUR | USD | MXN | COP | ARS | CLP | PEN
+  ivaRate  Float  @default(0) // % de IVA/impuesto aplicable
+
+  // Auto-envío mensual de informes a propietarios
+  autoSendReports Boolean @default(false)
+  autoSendDay     Int     @default(2) // día del mes en que se envían (informe del mes anterior)
+
+  // Facturación (Stripe)
+  subscriptionStatus   String    @default("trialing") // trialing | active | past_due | canceled | none
+  trialEndsAt          DateTime?
+  trialReminderSent    Boolean   @default(false)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  currentPeriodEnd     DateTime?
+
+  properties  Property[]
+  owners      Owner[]
+  resetTokens PasswordResetToken[]
+  reportLogs  ReportLog[]
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// Propietario / inversor al que la gestora rinde cuentas.
+model Owner {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  email     String?
+  phone     String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  // Portal del propietario (acceso de solo lectura)
+  passwordHash  String?
+  portalEnabled Boolean @default(false)
+
+  properties Property[]
+  reportLogs ReportLog[]
+
+  @@index([userId])
+}
+
+model Property {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ownerId       String?
+  owner         Owner?   @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  name          String
+  address       String?
+  seasonsConfig String? // JSON con la configuración de temporadas (alta/media/baja)
+  createdAt     DateTime @default(now())
+
+  reservations Reservation[]
+  expenses     Expense[]
+  incidents    Incident[]
+
+  @@index([userId])
+  @@index([ownerId])
+}
+
+// Registro de incidencias por propiedad (reparaciones, quejas, problemas).
+model Incident {
+  id          String   @id @default(cuid())
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  type        String // reparacion | queja | problema | otro
+  description String
+  cost        Float    @default(0)
+  date        DateTime
+  month       String // YYYY-MM (según la fecha)
+  createdAt   DateTime @default(now())
+
+  @@index([propertyId])
+  @@index([month])
+}
+
+model Reservation {
+  id                 String    @id @default(cuid())
+  propertyId         String
+  property           Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  platform           String    @default("Otra") // Airbnb | Booking | VRBO | Otra
+  guestName          String?
+  bookingDate        DateTime?
+  checkIn            DateTime
+  checkOut           DateTime
+  nights             Int
+  grossRevenue       Float     @default(0)
+  platformCommission Float     @default(0)
+  netRevenue         Float     @default(0)
+  month              String // "YYYY-MM" (según fecha de entrada) para agrupar
+  createdAt          DateTime  @default(now())
+
+  @@index([propertyId])
+  @@index([month])
+}
+
+model Expense {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  category   String // fijo | variable | plataforma | gestion
+  concept    String // p.ej. "Limpieza", "Hipoteca"
+  amount     Float    @default(0)
+  isPercent  Boolean  @default(false) // para comisión de gestora (% sobre ingresos)
+  month      String // "YYYY-MM"
+  createdAt  DateTime @default(now())
+
+  @@index([propertyId])
+  @@index([month])
+}
+
+// Historial de informes generados/enviados (pestaña Propietarios).
+model ReportLog {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ownerId    String?
+  owner      Owner?   @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  propertyId String?
+  type       String // owner | manager
+  month      String
+  sentTo     String? // email destino si se envió por correo
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([ownerId])
+}

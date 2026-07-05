@@ -1,0 +1,18 @@
+node_modules/
+dist/
+build/
+.env
+# Los .env.example SÍ se versionan (plantillas):
+!.env.example
+!server/.env.example
+*.log
+.DS_Store
+# Prisma / SQLite
+server/prisma/*.db
+server/prisma/*.db-journal
+# Uploads temporales
+server/uploads/
+# Vite
+client/dist/
+# Claude Code — ajustes locales/personales (el launch.json sí se versiona)
+.claude/settings.local.json

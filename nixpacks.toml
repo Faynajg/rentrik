@@ -1,0 +1,16 @@
+# Rentrik — configuración de build para Railway (Nixpacks)
+# Monorepo: instala y compila el frontend (client, Vite) y el backend (server, Express + Prisma).
+# El servidor sirve el frontend compilado (client/dist), así que todo corre en un único servicio.
+
+[phases.setup]
+# Node 18 (incluye npm). Cambia a "nodejs_20" si prefieres Node 20 LTS.
+nixPkgs = ["nodejs_18"]
+
+[phases.install]
+# --include=dev fuerza las devDependencies (vite, tsc, prisma…), necesarias para compilar
+# aunque Railway defina NODE_ENV=production. Cada comando parte de la raíz del repo.
+cmds = ["cd client && npm ci --include=dev && cd ../server && npm ci --include=dev"]
+
+[phases.build]
+# Compila el cliente (Vite → client/dist) y el servidor (prisma generate + tsc → server/dist).
+cmds = ["cd client && npm run build && cd ../server && npm run build"]

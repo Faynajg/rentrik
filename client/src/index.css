@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-canvas text-slate-700 font-sans antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply text-ink;
+    letter-spacing: -0.02em;
+  }
+  ::selection {
+    @apply bg-brand/15 text-brand-700;
+  }
+  /* Scrollbar sutil */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-slate-300;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400;
+    background-clip: content-box;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98];
+  }
+  .btn-primary {
+    @apply btn bg-brand text-white shadow-sm hover:bg-brand-700 hover:shadow-md focus:ring-brand/40;
+  }
+  .btn-positive {
+    @apply btn bg-positive text-white shadow-sm hover:brightness-105 focus:ring-positive/40;
+  }
+  .btn-ghost {
+    @apply btn bg-white text-brand border border-slate-200 hover:border-slate-300 hover:bg-slate-50 focus:ring-brand/20;
+  }
+  .btn-dark {
+    @apply btn bg-ink text-white hover:bg-brand-900 focus:ring-brand/40;
+  }
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs rounded-lg;
+  }
+  .btn-lg {
+    @apply px-6 py-3.5 text-base rounded-xl;
+  }
+  .input {
+    @apply w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10 placeholder:text-slate-400;
+  }
+  .label {
+    @apply block text-sm font-medium text-slate-700 mb-1.5;
+  }
+  .card {
+    @apply rounded-2xl bg-white shadow-card border border-slate-100;
+  }
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-cardHover hover:-translate-y-0.5;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+  .eyebrow {
+    @apply inline-flex items-center gap-2 rounded-full border border-brand/15 bg-brand/5 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-brand;
+  }
+  .section {
+    @apply mx-auto max-w-6xl px-5 sm:px-6 lg:px-8;
+  }
+  .stat-label {
+    @apply text-2xs font-semibold uppercase tracking-wider text-slate-400;
+  }
+}

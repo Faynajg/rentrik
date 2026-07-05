@@ -1,0 +1,10 @@
+# Normaliza los finales de línea a LF (el despliegue corre en Linux).
+* text=auto eol=lf
+
+# Binarios: sin conversión.
+*.png binary
+*.jpg binary
+*.pdf binary
+*.ico binary
+*.woff binary
+*.woff2 binary
