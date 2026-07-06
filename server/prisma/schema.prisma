@@ -1,12 +1,12 @@
-// Rentrik — esquema de base de datos
-// Para migrar a PostgreSQL: cambia provider a "postgresql" y ajusta DATABASE_URL.
+// Rentrik — esquema de base de datos (producción: PostgreSQL).
+// Para desarrollo local con SQLite, cambia provider a "sqlite" y DATABASE_URL a "file:./dev.db".
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
