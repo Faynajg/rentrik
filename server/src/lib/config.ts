@@ -6,7 +6,8 @@ export const config = {
   port: Number(process.env.PORT ?? 4000),
   jwtSecret: process.env.JWT_SECRET ?? "rentrik-dev-secret",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? "7d",
-  clientOrigin: process.env.CLIENT_ORIGIN ?? "http://localhost:5173",
+  // Por defecto apunta al dominio de producción; en local, el .env lo pone en localhost.
+  clientOrigin: process.env.CLIENT_ORIGIN || "https://rentrik.app",
   trialDays: Number(process.env.TRIAL_DAYS ?? 14),
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY ?? "",

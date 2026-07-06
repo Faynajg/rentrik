@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { config } from "./config";
 
 const SMTP_HOST = process.env.SMTP_HOST ?? "";
 const SMTP_PORT = Number(process.env.SMTP_PORT ?? 587);
@@ -88,7 +89,7 @@ export function welcomeEmail(name: string): { subject: string; html: string } {
          <li>Sube el CSV de ingresos de tu OTA</li>
          <li>Introduce tus gastos y genera tu informe</li>
        </ol>`,
-      { label: "Ir a mi panel", url: `${process.env.CLIENT_ORIGIN ?? "http://localhost:5173"}/dashboard` }
+      { label: "Ir a mi panel", url: `${config.clientOrigin}/dashboard` }
     ),
   };
 }
@@ -100,7 +101,7 @@ export function trialReminderEmail(name: string, daysLeft: number): { subject: s
       `Hola, ${name}`,
       `<p>Tu periodo de prueba gratuito de Rentrik termina en <strong>${daysLeft} días</strong>.</p>
        <p>Elige un plan para seguir generando tus informes de rentabilidad sin interrupciones. Puedes cancelar cuando quieras.</p>`,
-      { label: "Ver planes", url: `${process.env.CLIENT_ORIGIN ?? "http://localhost:5173"}/precios` }
+      { label: "Ver planes", url: `${config.clientOrigin}/precios` }
     ),
   };
 }
