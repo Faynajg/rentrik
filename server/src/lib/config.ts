@@ -11,11 +11,14 @@ export const config = {
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY ?? "",
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
+    // Price IDs reales de Stripe (por defecto). Las variables de entorno los sobreescriben.
+    // Se usa `||` para que un valor vacío también recurra al valor por defecto.
+    // Pro aún no tiene Price ID → sin cobro real (modo simulado) hasta configurarlo.
     prices: {
-      starter: process.env.STRIPE_PRICE_STARTER ?? "",
-      gestor: process.env.STRIPE_PRICE_GESTOR ?? "",
-      pro: process.env.STRIPE_PRICE_PRO ?? "",
-      agencia: process.env.STRIPE_PRICE_AGENCIA ?? "",
+      starter: process.env.STRIPE_PRICE_STARTER || "price_1TqD7RF46dkVUoaJMyDxZUEA",
+      gestor: process.env.STRIPE_PRICE_GESTOR || "price_1TqDGdF46dkVUoaJcTmMcoCH",
+      pro: process.env.STRIPE_PRICE_PRO || "",
+      agencia: process.env.STRIPE_PRICE_AGENCIA || "price_1TqDSMF46dkVUoaJQ1mDww9W",
     } as Record<string, string>,
   },
 };

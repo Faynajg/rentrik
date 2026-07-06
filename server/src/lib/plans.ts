@@ -25,7 +25,7 @@ export const PLANS: Record<string, Plan> = {
   gestor: {
     id: "gestor",
     name: "Gestor",
-    price: 69,
+    price: 79,
     maxProperties: 15,
     ownBranding: false,
     features: [
@@ -51,7 +51,7 @@ export const PLANS: Record<string, Plan> = {
   agencia: {
     id: "agencia",
     name: "Agencia",
-    price: 169,
+    price: 189,
     maxProperties: Infinity,
     ownBranding: true,
     features: [

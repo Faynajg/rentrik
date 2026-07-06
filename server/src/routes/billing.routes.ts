@@ -83,7 +83,6 @@ router.post(
     }
 
     const customerId = await ensureCustomer(user);
-    const remaining = trialDaysLeft(user.trialEndsAt);
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -91,7 +90,8 @@ router.post(
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
       subscription_data: {
-        ...(remaining > 0 ? { trial_period_days: remaining } : {}),
+        // Prueba gratuita de 14 días: no se cobra hasta que termine.
+        trial_period_days: config.trialDays,
         metadata: { userId: user.id, plan },
       },
       metadata: { userId: user.id, plan },
