@@ -68,7 +68,7 @@ async function main() {
       email: "demo@rentrik.com",
       passwordHash,
       companyName: "Costa Rentals",
-      plan: "pro",
+      plan: "agencia",
       subscriptionStatus: "active",
     },
   });

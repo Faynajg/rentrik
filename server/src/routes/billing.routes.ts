@@ -67,7 +67,7 @@ router.get(
 router.post(
   "/checkout",
   asyncHandler(async (req, res) => {
-    const { plan } = z.object({ plan: z.enum(["starter", "gestor", "pro", "agencia"]) }).parse(req.body);
+    const { plan } = z.object({ plan: z.enum(["starter", "gestor", "agencia"]) }).parse(req.body);
     const user = await prisma.user.findUnique({ where: { id: req.userId } });
     if (!user) throw new ApiError(404, "Usuario no encontrado");
 
@@ -158,6 +158,7 @@ export async function billingWebhookHandler(req: Request, res: Response) {
               stripeSubscriptionId: sub.id,
               subscriptionStatus: mapStatus(sub.status),
               currentPeriodEnd: periodEnd(sub),
+              trialEndsAt: trialEnd(sub),
             },
           });
         }
@@ -175,6 +176,7 @@ export async function billingWebhookHandler(req: Request, res: Response) {
             stripeSubscriptionId: sub.id,
             subscriptionStatus: mapStatus(sub.status),
             currentPeriodEnd: periodEnd(sub),
+            trialEndsAt: trialEnd(sub),
           },
         });
         break;
@@ -204,5 +206,11 @@ function mapStatus(status: Stripe.Subscription.Status): string {
 
 function periodEnd(sub: Stripe.Subscription): Date | null {
   const end = (sub as unknown as { current_period_end?: number }).current_period_end;
+  return end ? new Date(end * 1000) : null;
+}
+
+/** Fin del periodo de prueba de Stripe (para reflejarlo en la app). */
+function trialEnd(sub: Stripe.Subscription): Date | null {
+  const end = (sub as unknown as { trial_end?: number | null }).trial_end;
   return end ? new Date(end * 1000) : null;
 }

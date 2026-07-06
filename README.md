@@ -78,9 +78,8 @@ Para activar cobros reales, rellena en `server/.env`:
 ```bash
 STRIPE_SECRET_KEY="sk_test_..."
 STRIPE_WEBHOOK_SECRET="whsec_..."     # de `stripe listen` o del panel de webhooks
-STRIPE_PRICE_STARTER="price_..."      # crea un producto/precio por plan en Stripe
+STRIPE_PRICE_STARTER="price_..."      # opcional: ya hay Price IDs por defecto en el código
 STRIPE_PRICE_GESTOR="price_..."
-STRIPE_PRICE_PRO="price_..."
 STRIPE_PRICE_AGENCIA="price_..."
 ```
 

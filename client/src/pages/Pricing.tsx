@@ -98,7 +98,6 @@ export default function Pricing({ publicView = false }: { publicView?: boolean }
   const accents: Record<string, string> = {
     starter: "text-slate-500",
     gestor: "text-brand",
-    pro: "text-brand",
     agencia: "text-gold",
   };
 

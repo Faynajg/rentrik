@@ -383,9 +383,8 @@ export function Terminos() {
         <List
           items={[
             <><strong>Starter</strong> — 15 €/mes · hasta 3 propiedades.</>,
-            <><strong>Gestor</strong> — 69 €/mes · hasta 15 propiedades.</>,
-            <><strong>Pro</strong> — 109 €/mes · hasta 50 propiedades.</>,
-            <><strong>Agencia</strong> — 169 €/mes · propiedades ilimitadas y marca propia.</>,
+            <><strong>Gestor</strong> — 79 €/mes · hasta 15 propiedades.</>,
+            <><strong>Agencia</strong> — 189 €/mes · propiedades ilimitadas y marca propia.</>,
           ]}
         />
         <p>
@@ -398,9 +397,9 @@ export function Terminos() {
 
       <Section title="4. Periodo de prueba gratuito">
         <p>
-          Rentrik ofrece un periodo de prueba de 14 días sin necesidad de tarjeta de crédito. Al finalizar,
-          para seguir utilizando el servicio deberás contratar un plan. Si no lo haces, tu acceso quedará
-          limitado o suspendido.
+          Al contratar una suscripción, dispones de un periodo de prueba gratuito de 14 días antes de que se
+          realice el primer cobro. Puedes cancelar durante ese periodo sin coste alguno. Transcurridos los 14
+          días, se cobrará automáticamente la cuota del plan elegido, salvo que hayas cancelado con anterioridad.
         </p>
       </Section>
 

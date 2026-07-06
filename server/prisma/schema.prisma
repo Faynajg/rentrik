@@ -16,7 +16,7 @@ model User {
   passwordHash String
   name         String
   companyName  String? // nombre de la gestora (marca propia en Plan Agencia)
-  plan         String   @default("starter") // starter | gestor | pro | agencia
+  plan         String   @default("starter") // starter | gestor | agencia
   createdAt    DateTime @default(now())
 
   // Moneda e impuestos

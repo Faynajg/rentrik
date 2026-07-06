@@ -72,7 +72,7 @@ router.post(
     if (existing) throw new ApiError(409, "Ya existe una cuenta con ese email");
 
     const passwordHash = await bcrypt.hash(data.password, 10);
-    const trialEndsAt = new Date(Date.now() + config.trialDays * 24 * 60 * 60 * 1000);
+    // Sin prueba in-app: la prueba de 14 días la gestiona Stripe al suscribirse.
     const user = await prisma.user.create({
       data: {
         name: data.name,
@@ -80,8 +80,7 @@ router.post(
         passwordHash,
         companyName: data.companyName ?? null,
         plan,
-        subscriptionStatus: "trialing",
-        trialEndsAt,
+        subscriptionStatus: "none",
       },
     });
 

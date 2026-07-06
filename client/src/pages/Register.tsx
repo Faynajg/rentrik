@@ -8,7 +8,6 @@ import { AuthLayout } from "./Login";
 const PLAN_NAMES: Record<string, string> = {
   starter: "Starter",
   gestor: "Gestor",
-  pro: "Pro",
   agencia: "Agencia",
 };
 

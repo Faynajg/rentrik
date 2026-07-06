@@ -35,19 +35,6 @@ export const PLANS: Record<string, Plan> = {
       "Gráficos e histórico",
     ],
   },
-  pro: {
-    id: "pro",
-    name: "Pro",
-    price: 109,
-    maxProperties: 50,
-    ownBranding: false,
-    features: [
-      "Hasta 50 propiedades",
-      "Todo lo del plan Gestor",
-      "Comparativas avanzadas",
-      "Ranking de rentabilidad",
-    ],
-  },
   agencia: {
     id: "agencia",
     name: "Agencia",
@@ -56,7 +43,8 @@ export const PLANS: Record<string, Plan> = {
     ownBranding: true,
     features: [
       "Propiedades ilimitadas",
-      "Todo lo del plan Pro",
+      "Todo lo del plan Gestor",
+      "Comparativas y ranking de rentabilidad",
       "PDF con marca propia",
       "Soporte prioritario",
     ],
