@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { BillingStatus, PlanInfo } from "../types";
 import { eur } from "../lib/format";
 import { Logo } from "../components/Logo";
+import { SiteFooter } from "../components/SiteFooter";
 import { Alert, Spinner } from "../components/ui";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -256,6 +257,7 @@ export default function Pricing({ publicView = false }: { publicView?: boolean }
           </div>
         </header>
         <div className="px-4 py-14 sm:px-6">{content}</div>
+        <SiteFooter />
       </div>
     );
   }

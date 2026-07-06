@@ -234,11 +234,12 @@ export default function Landing() {
           <p className="text-sm text-slate-400">
             © {new Date().getFullYear()} Rentrik · Rentabilidad de alquiler vacacional
           </p>
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-slate-400">
+          <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-slate-400">
             <Link to="/precios-publico" className="hover:text-brand">Precios</Link>
-            <Link to="/terminos" className="hover:text-brand">Términos</Link>
+            <Link to="/aviso-legal" className="hover:text-brand">Aviso Legal</Link>
             <Link to="/privacidad" className="hover:text-brand">Privacidad</Link>
-            <Link to="/login" className="hover:text-brand">Acceder</Link>
+            <Link to="/cookies" className="hover:text-brand">Cookies</Link>
+            <Link to="/terminos" className="hover:text-brand">Términos</Link>
           </div>
         </div>
       </footer>

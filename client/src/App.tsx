@@ -19,7 +19,7 @@ import Estacionalidad from "./pages/Estacionalidad";
 import Historico from "./pages/Historico";
 import Propietarios from "./pages/Propietarios";
 import Calculadora from "./pages/Calculadora";
-import { Terminos, Privacidad } from "./pages/Legal";
+import { Terminos, Privacidad, AvisoLegal, Cookies } from "./pages/Legal";
 import PortalLogin from "./pages/portal/PortalLogin";
 import PortalDashboard from "./pages/portal/PortalDashboard";
 import PortalPropertyDetail from "./pages/portal/PortalPropertyDetail";
@@ -65,6 +65,8 @@ export default function App() {
       <Route path="/precios-publico" element={<Pricing publicView />} />
       <Route path="/terminos" element={<Terminos />} />
       <Route path="/privacidad" element={<Privacidad />} />
+      <Route path="/aviso-legal" element={<AvisoLegal />} />
+      <Route path="/cookies" element={<Cookies />} />
 
       <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
       <Route path="/comparativa" element={<Protected><Comparativa /></Protected>} />

@@ -25,6 +25,7 @@ export default function Register() {
     companyName: "",
     plan: PLAN_NAMES[preselectedPlan] ? preselectedPlan : "starter",
   });
+  const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -35,6 +36,10 @@ export default function Register() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
+    if (!accepted) {
+      setError("Debes aceptar los Términos y Condiciones y la Política de Privacidad para continuar.");
+      return;
+    }
     setLoading(true);
     try {
       await register({
@@ -80,14 +85,23 @@ export default function Register() {
             ))}
           </select>
         </div>
-        <button className="btn-primary btn-lg w-full" disabled={loading}>
+        <label className="flex cursor-pointer items-start gap-2.5 text-sm text-slate-600">
+          <input
+            type="checkbox"
+            checked={accepted}
+            onChange={(e) => setAccepted(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-[#1E3A5F]"
+          />
+          <span>
+            He leído y acepto los{" "}
+            <Link to="/terminos" target="_blank" className="font-medium text-brand hover:underline">Términos y Condiciones</Link>{" "}
+            y la{" "}
+            <Link to="/privacidad" target="_blank" className="font-medium text-brand hover:underline">Política de Privacidad</Link>.
+          </span>
+        </label>
+        <button className="btn-primary btn-lg w-full" disabled={loading || !accepted}>
           {loading ? "Creando cuenta…" : "Empezar prueba gratuita"}
         </button>
-        <p className="text-center text-xs text-slate-400">
-          Al registrarte aceptas los{" "}
-          <Link to="/terminos" className="text-brand hover:underline">Términos</Link> y la{" "}
-          <Link to="/privacidad" className="text-brand hover:underline">Política de Privacidad</Link>.
-        </p>
       </form>
       <p className="mt-6 text-center text-sm text-slate-500">
         ¿Ya tienes cuenta?{" "}

@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Logo } from "./Logo";
+import { SiteFooter } from "./SiteFooter";
 import { useOwnerAuth } from "../context/OwnerAuthContext";
 
 export function PortalShell({ children }: { children: ReactNode }) {
@@ -31,7 +32,8 @@ export function PortalShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+      <main className="mx-auto min-h-[70vh] max-w-6xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+      <SiteFooter />
     </div>
   );
 }

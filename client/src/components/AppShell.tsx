@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Logo } from "./Logo";
+import { SiteFooter } from "./SiteFooter";
 import { useAuth } from "../context/AuthContext";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -104,7 +105,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {user?.subscriptionStatus === "trialing" && <TrialBanner daysLeft={user.trialDaysLeft} />}
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+      <main className="mx-auto min-h-[70vh] max-w-7xl px-4 py-6 sm:px-6 sm:py-8">{children}</main>
+      <SiteFooter />
     </div>
   );
 }
