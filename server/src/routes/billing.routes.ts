@@ -129,17 +129,19 @@ export default router;
 export async function billingWebhookHandler(req: Request, res: Response) {
   if (!stripe) return res.status(200).json({ received: true, ignored: "stripe-disabled" });
 
+  // Exige el secreto del webhook: sin él NO se aceptan eventos (evita eventos falsificados).
+  if (!config.stripe.webhookSecret) {
+    console.error("Falta STRIPE_WEBHOOK_SECRET: no se pueden verificar los eventos de Stripe.");
+    return res.status(500).send("Webhook no configurado: falta STRIPE_WEBHOOK_SECRET.");
+  }
+
   let event: Stripe.Event;
   try {
     const signature = req.headers["stripe-signature"] as string;
-    if (config.stripe.webhookSecret) {
-      event = stripe.webhooks.constructEvent(req.body, signature, config.stripe.webhookSecret);
-    } else {
-      // Sin secreto de webhook: confía en el cuerpo (solo desarrollo).
-      event = JSON.parse(req.body.toString()) as Stripe.Event;
-    }
+    // Verifica la firma del evento con el secreto del webhook.
+    event = stripe.webhooks.constructEvent(req.body, signature, config.stripe.webhookSecret);
   } catch (err) {
-    console.error("Webhook signature verification failed:", err);
+    console.error("Verificación de la firma del webhook fallida:", err);
     return res.status(400).send(`Webhook Error: ${(err as Error).message}`);
   }
 
