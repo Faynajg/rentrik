@@ -9,14 +9,14 @@ const UPDATED = "6 de julio de 2026";
 // El Aviso Legal (LSSI-CE) y la Política de Privacidad (RGPD) exigen datos veraces.
 // ─────────────────────────────────────────────────────────────────────────────
 const EMPRESA = {
-  titular: "[Nombre y apellidos o razón social del titular]",
-  nif: "[NIF / CIF]",
-  domicilio: "[Domicilio fiscal completo]",
-  registro: "[Si eres sociedad: datos registrales — Registro Mercantil, tomo, folio, hoja]",
-  email: "hola@rentrik.app",
-  emailPrivacidad: "privacidad@rentrik.app",
-  emailLegal: "legal@rentrik.app",
-  telefono: "[Teléfono de contacto]",
+  titular: "Rentrik, operado por BABYJOYCREATIONS LLC",
+  idFiscal: "EIN 98-1753131",
+  domicilio: "30 N Gould St Ste R, Sheridan, WY 82801, Estados Unidos",
+  registro:
+    "BABYJOYCREATIONS LLC — sociedad de responsabilidad limitada (LLC) constituida en el estado de Wyoming (Estados Unidos).",
+  email: "rentrik.app@gmail.com",
+  emailPrivacidad: "rentrik.app@gmail.com",
+  emailLegal: "rentrik.app@gmail.com",
   web: "https://rentrik.app",
 };
 
@@ -85,12 +85,11 @@ export function AvisoLegal() {
         <List
           items={[
             <><strong>Titular:</strong> {EMPRESA.titular}</>,
-            <><strong>NIF/CIF:</strong> {EMPRESA.nif}</>,
+            <><strong>Identificación fiscal:</strong> {EMPRESA.idFiscal}</>,
             <><strong>Domicilio:</strong> {EMPRESA.domicilio}</>,
             <><strong>Correo electrónico:</strong> {EMPRESA.email}</>,
-            <><strong>Teléfono:</strong> {EMPRESA.telefono}</>,
             <><strong>Sitio web:</strong> {EMPRESA.web}</>,
-            <><strong>Datos registrales:</strong> {EMPRESA.registro}</>,
+            <><strong>Forma jurídica:</strong> {EMPRESA.registro}</>,
           ]}
         />
       </Section>
@@ -176,7 +175,7 @@ export function Privacidad() {
         <List
           items={[
             <><strong>Responsable:</strong> {EMPRESA.titular}</>,
-            <><strong>NIF/CIF:</strong> {EMPRESA.nif}</>,
+            <><strong>Identificación fiscal:</strong> {EMPRESA.idFiscal}</>,
             <><strong>Domicilio:</strong> {EMPRESA.domicilio}</>,
             <><strong>Contacto en materia de privacidad:</strong> {EMPRESA.emailPrivacidad}</>,
           ]}

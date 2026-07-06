@@ -62,19 +62,20 @@ export default function Landing() {
               <span className="h-1.5 w-1.5 rounded-full bg-positive" />
               Para gestores y propietarios de alquiler vacacional
             </span>
-            <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-[1.08] tracking-tightest text-ink animate-fadeUp sm:text-6xl">
-              Sabe cuánto gana{" "}
+            <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-[1.08] tracking-tightest text-ink animate-fadeUp sm:text-5xl">
+              ¿Estás{" "}
               <span className="relative whitespace-nowrap text-brand">
-                de verdad
+                ganando dinero
                 <svg className="absolute -bottom-2 left-0 w-full" height="10" viewBox="0 0 200 10" fill="none" preserveAspectRatio="none">
                   <path d="M2 7C50 2 150 2 198 6" stroke="#2ECC71" strokeWidth="3" strokeLinecap="round" />
                 </svg>
               </span>{" "}
-              cada propiedad
+              con tu Airbnb o solo lo crees?
             </h1>
             <p className="mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-slate-500 animate-fadeUp">
-              Rentrik combina tus ingresos reales de las OTAs con tus gastos y te da el beneficio
-              neto de cada propiedad, con informes PDF profesionales para propietario y gestora.
+              Rentrik analiza tus ingresos reales, descuenta todos tus gastos y te dice exactamente
+              si tu propiedad está optimizada o estás perdiendo dinero sin saberlo. En minutos, sin
+              Excel, sin complicaciones.
             </p>
             <div className="mt-9 flex flex-col items-center justify-center gap-3 animate-fadeUp sm:flex-row">
               <Link to="/registro" className="btn-primary btn-lg w-full sm:w-auto">
