@@ -3,8 +3,8 @@
 # El servidor sirve el frontend compilado (client/dist), así que todo corre en un único servicio.
 
 [phases.setup]
-# Node 18 (incluye npm). Cambia a "nodejs_20" si prefieres Node 20 LTS.
-nixPkgs = ["nodejs_18"]
+# Node 20 LTS (incluye npm). Node 18 llegó a End-Of-Life y se eliminó del source de Nixpacks.
+nixPkgs = ["nodejs_20"]
 
 [phases.install]
 # --include=dev fuerza las devDependencies (vite, tsc, prisma…), necesarias para compilar
