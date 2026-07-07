@@ -107,7 +107,7 @@ export default function Landing() {
             Compatible con los informes de tus plataformas
           </p>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-            {["Airbnb", "Booking.com", "VRBO", "Expedia", "Holidu", "Rentalia", "Wimdu", "TripAdvisor"].map((b) => (
+            {["Airbnb", "Booking.com", "VRBO", "Expedia", "Holidu", "Rentalia", "Wimdu", "TripAdvisor", "CSV genérico"].map((b) => (
               <span key={b} className="text-lg font-bold text-slate-300 transition hover:text-slate-400">
                 {b}
               </span>
