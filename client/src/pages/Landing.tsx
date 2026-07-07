@@ -47,7 +47,7 @@ export default function Landing() {
               Iniciar sesión
             </Link>
             <Link to="/registro" className="btn-primary btn-sm sm:!px-4 sm:!py-2">
-              Empezar gratis
+              Prueba 14 días gratis
             </Link>
           </div>
         </div>

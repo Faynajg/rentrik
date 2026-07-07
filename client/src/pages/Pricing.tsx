@@ -17,10 +17,10 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const FAQ = [
-  ["¿Necesito tarjeta para la prueba?", "No. Los 14 días de prueba son gratuitos y no piden tarjeta de crédito. Solo pagas si decides continuar."],
+  ["¿Necesito tarjeta para la prueba?", "Sí. Pedimos una tarjeta para activar la prueba, pero no se cobra nada durante los 14 días. Puedes cancelar cuando quieras antes de que termine y no se te cobrará."],
   ["¿Puedo cambiar de plan más adelante?", "Sí, puedes subir o bajar de plan en cualquier momento desde tu cuenta. El cambio se aplica al instante."],
   ["¿Qué pasa si supero el número de propiedades?", "Te avisamos y podrás pasar a un plan superior. Nunca perderás tus datos."],
-  ["¿Los informes PDF llevan mi marca?", "En el plan Agencia los informes se generan con el logo y nombre de tu gestora. En el resto, con la marca Rentrik."],
+  ["¿En qué se diferencia Rentrik de otros software?", "La mayoría de herramientas te dicen cuánto has ingresado. Rentrik te dice cuánto has ganado de verdad. Descontamos todos tus gastos reales — limpieza, mantenimiento, comisiones, plataformas — y te damos la rentabilidad neta por propiedad. En español, pensado para el mercado hispanohablante, sin traducciones automáticas ni curvas de aprendizaje."],
 ];
 
 export default function Pricing({ publicView = false }: { publicView?: boolean }) {
@@ -169,11 +169,6 @@ export default function Pricing({ publicView = false }: { publicView?: boolean }
                     Más popular
                   </span>
                 )}
-                {plan.id === "agencia" && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gold px-3 py-1 text-2xs font-bold uppercase tracking-wide text-white shadow-sm">
-                    Marca propia
-                  </span>
-                )}
                 <h3 className={`text-sm font-bold uppercase tracking-wide ${accents[plan.id]}`}>{plan.name}</h3>
                 <div className="mt-3 flex items-baseline gap-1">
                   <span className="text-4xl font-extrabold tracking-tight text-ink">{eur(plan.price, 0)}</span>
@@ -206,7 +201,7 @@ export default function Pricing({ publicView = false }: { publicView?: boolean }
                     : changing === plan.id
                     ? "Procesando…"
                     : publicView || !user
-                    ? "Empezar gratis"
+                    ? "Prueba 14 días gratis"
                     : "Elegir plan"}
                 </button>
               </div>
@@ -251,7 +246,7 @@ export default function Pricing({ publicView = false }: { publicView?: boolean }
             <Link to="/"><Logo size={28} /></Link>
             <div className="flex items-center gap-3">
               <Link to="/login" className="text-sm font-semibold text-slate-600 hover:text-brand">Iniciar sesión</Link>
-              <Link to="/registro" className="btn-primary btn-sm">Empezar gratis</Link>
+              <Link to="/registro" className="btn-primary btn-sm">Prueba 14 días gratis</Link>
             </div>
           </div>
         </header>

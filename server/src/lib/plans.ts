@@ -45,7 +45,6 @@ export const PLANS: Record<string, Plan> = {
       "Propiedades ilimitadas",
       "Todo lo del plan Gestor",
       "Comparativas y ranking de rentabilidad",
-      "PDF con marca propia",
       "Soporte prioritario",
     ],
   },
