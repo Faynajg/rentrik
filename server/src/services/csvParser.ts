@@ -30,23 +30,62 @@ function norm(s: string): string {
     .trim();
 }
 
-// Palabras clave por campo (español + inglés, varias OTAs).
+// Palabras clave por campo (español + inglés, múltiples OTAs: Airbnb, Booking,
+// VRBO, Expedia, Holidu, Rentalia, Wimdu, TripAdvisor/FlipKey y CSVs genéricos).
 const FIELD_KEYWORDS: Record<string, string[]> = {
-  checkIn: ["fecha de entrada", "fecha entrada", "check-in", "checkin", "check in", "llegada", "arrival", "start date", "fecha llegada"],
-  checkOut: ["fecha de salida", "fecha salida", "check-out", "checkout", "check out", "salida", "departure", "end date"],
-  bookingDate: ["fecha de reserva", "fecha reserva", "booking date", "reservado", "confirmation date", "fecha de la reserva"],
-  grossRevenue: ["ingresos brutos", "importe bruto", "gross earnings", "gross", "total price", "importe total", "total payout", "amount", "importe", "precio total", "total"],
-  netRevenue: ["ingresos netos", "importe neto", "net earnings", "payout", "net", "neto", "ganancia neta"],
-  platformCommission: ["comision de plataforma", "comision", "commission", "service fee", "host fee", "host service fee", "tarifa de servicio", "comision del anfitrion"],
-  nights: ["numero de noches", "num noches", "noches", "nights", "n noches"],
-  guestName: ["nombre del huesped", "huesped", "guest name", "guest", "cliente", "nombre"],
-  platform: ["plataforma", "platform", "canal", "channel", "source", "origen"],
+  checkIn: [
+    "fecha de entrada", "fecha entrada", "check-in", "checkin", "check in",
+    "llegada", "fecha llegada", "arrival", "arrival date", "start date",
+    "fecha inicio", "fecha de inicio", "inicio de estancia", "stay start",
+  ],
+  checkOut: [
+    "fecha de salida", "fecha salida", "check-out", "checkout", "check out",
+    "salida", "departure", "departure date", "end date", "fecha fin",
+    "fecha de fin", "fin de estancia", "stay end",
+  ],
+  bookingDate: [
+    "fecha de reserva", "fecha reserva", "fecha de la reserva", "booking date",
+    "reservado", "confirmation date", "fecha de confirmacion", "reservation date",
+    "fecha de creacion", "created",
+  ],
+  grossRevenue: [
+    "ingresos brutos", "importe bruto", "gross earnings", "gross revenue", "gross",
+    "importe de la reserva", "total de la reserva", "valor de la reserva",
+    "booking amount", "booking value", "reservation total", "total booking",
+    "total price", "importe total", "total payout", "precio total",
+    "importe alquiler", "rental amount", "importe", "amount", "ingresos", "total",
+  ],
+  netRevenue: [
+    "ingresos netos", "importe neto", "net earnings", "net revenue", "net amount",
+    "net payout", "owner payout", "pago al propietario", "importe para el propietario",
+    "importe liquidado", "liquidacion", "payout", "neto", "net", "ganancia neta",
+  ],
+  platformCommission: [
+    "comision de plataforma", "comision del anfitrion", "comision de reserva",
+    "comision ota", "comision", "commission", "ota commission", "service fee",
+    "host service fee", "host fee", "channel fee", "booking fee",
+    "tarifa de servicio", "tarifa de gestion", "expedia compensation",
+  ],
+  nights: [
+    "numero de noches", "num noches", "n noches", "noches", "nights",
+    "estancia", "duracion", "duration", "length of stay",
+  ],
+  guestName: [
+    "nombre del huesped", "huesped", "guest name", "guest", "cliente",
+    "nombre del cliente", "titular", "nombre y apellidos", "nombre completo",
+    "traveler", "viajero", "nombre",
+  ],
+  platform: ["plataforma", "platform", "canal", "channel", "source", "origen", "portal"],
 };
 
-/** Encuentra la cabecera real que corresponde a un campo canónico. */
-function matchColumn(headers: string[], field: string): string | null {
+/**
+ * Encuentra la cabecera real que corresponde a un campo canónico.
+ * `used` contiene cabeceras ya asignadas a otro campo, que se excluyen para
+ * evitar colisiones (p. ej. que "plataforma" robe "Comisión de plataforma").
+ */
+function matchColumn(headers: string[], field: string, used?: Set<string>): string | null {
   const keywords = FIELD_KEYWORDS[field];
-  const normalized = headers.map((h) => ({ raw: h, n: norm(h) }));
+  const normalized = headers.filter((h) => !used?.has(h)).map((h) => ({ raw: h, n: norm(h) }));
   // 1) coincidencia exacta primero
   for (const kw of keywords) {
     const exact = normalized.find((h) => h.n === kw);
@@ -117,13 +156,31 @@ function nightsBetween(a: Date, b: Date): number {
   return Math.max(0, Math.round(ms / (1000 * 60 * 60 * 24)));
 }
 
-/** Detecta la plataforma a partir de nombres de columnas conocidos. */
+/** Marcas de OTA reconocidas y los tokens que las identifican. */
+const PLATFORM_TOKENS: [string, string[]][] = [
+  ["Airbnb", ["airbnb", "host payout"]],
+  ["VRBO", ["vrbo", "homeaway", "home away"]],
+  ["Expedia", ["expedia"]],
+  ["Holidu", ["holidu"]],
+  ["Rentalia", ["rentalia"]],
+  ["Wimdu", ["wimdu"]],
+  ["TripAdvisor", ["tripadvisor", "trip advisor", "flipkey", "flip key"]],
+  // "booking" es genérico (aparece en "gross booking value", "booking amount"…),
+  // por eso Booking va al final: solo gana si ninguna marca específica coincide.
+  ["Booking", ["booking.com", "booking number", "booking id", "booker", "booking"]],
+];
+
+/** Busca una marca conocida dentro de un texto ya normalizado. */
+function platformFromText(text: string): string | null {
+  for (const [name, tokens] of PLATFORM_TOKENS) {
+    if (tokens.some((t) => text.includes(t))) return name;
+  }
+  return null;
+}
+
+/** Detecta la plataforma a partir de los nombres de columnas conocidos. */
 function detectPlatform(headers: string[]): string {
-  const joined = headers.map(norm).join(" | ");
-  if (joined.includes("airbnb") || joined.includes("host payout")) return "Airbnb";
-  if (joined.includes("booking")) return "Booking";
-  if (joined.includes("vrbo") || joined.includes("homeaway")) return "VRBO";
-  return "Otra";
+  return platformFromText(headers.map(norm).join(" | ")) ?? "Otra";
 }
 
 /**
@@ -144,19 +201,40 @@ export function parseReservationsCsv(
   const rows = result.data ?? [];
   const headers = result.meta.fields ?? [];
 
+  // Se asignan de más específico a más genérico; cada columna asignada se
+  // excluye de las siguientes para que un campo genérico ("plataforma",
+  // "importe"…) no se quede con la columna de otro más concreto.
+  const used = new Set<string>();
+  const pick = (field: string) => {
+    const col = matchColumn(headers, field, used);
+    if (col) used.add(col);
+    return col;
+  };
   const cols = {
-    checkIn: matchColumn(headers, "checkIn"),
-    checkOut: matchColumn(headers, "checkOut"),
-    bookingDate: matchColumn(headers, "bookingDate"),
-    grossRevenue: matchColumn(headers, "grossRevenue"),
-    netRevenue: matchColumn(headers, "netRevenue"),
-    platformCommission: matchColumn(headers, "platformCommission"),
-    nights: matchColumn(headers, "nights"),
-    guestName: matchColumn(headers, "guestName"),
-    platform: matchColumn(headers, "platform"),
+    checkIn: pick("checkIn"),
+    checkOut: pick("checkOut"),
+    bookingDate: pick("bookingDate"),
+    nights: pick("nights"),
+    platformCommission: pick("platformCommission"),
+    netRevenue: pick("netRevenue"),
+    grossRevenue: pick("grossRevenue"),
+    guestName: pick("guestName"),
+    platform: pick("platform"),
   };
 
-  const detectedPlatform = forcedPlatform || detectPlatform(headers);
+  let detectedPlatform = forcedPlatform || detectPlatform(headers);
+
+  // Si por cabeceras no se reconoce, intenta inferir la marca del valor de la
+  // columna de plataforma/canal/portal (Holidu, Rentalia… la ponen ahí).
+  if (!forcedPlatform && detectedPlatform === "Otra" && cols.platform) {
+    for (const row of rows) {
+      const raw = row[cols.platform]?.trim();
+      if (!raw) continue;
+      detectedPlatform = platformFromText(norm(raw)) ?? raw;
+      break;
+    }
+  }
+
   const reservations: ParsedReservation[] = [];
   let skipped = 0;
 

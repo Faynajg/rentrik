@@ -93,8 +93,9 @@ export function UploadModal({
         <form onSubmit={submit} className="space-y-4">
           {error && <Alert kind="error">{error}</Alert>}
           <p className="text-sm text-slate-500">
-            Descarga tu informe de ingresos desde Airbnb, Booking, VRBO o cualquier OTA y súbelo aquí.
-            Rentrik detecta el formato automáticamente.
+            Descarga tu informe de ingresos desde Airbnb, Booking, VRBO, Expedia, Holidu,
+            Rentalia, Wimdu, TripAdvisor o cualquier otra OTA y súbelo aquí. Rentrik detecta
+            el formato automáticamente; si no, elige la plataforma abajo.
           </p>
 
           <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-300 px-4 py-8 text-center hover:border-brand hover:bg-brand/5">
@@ -120,6 +121,11 @@ export function UploadModal({
               <option value="Airbnb">Airbnb</option>
               <option value="Booking">Booking</option>
               <option value="VRBO">VRBO</option>
+              <option value="Expedia">Expedia</option>
+              <option value="Holidu">Holidu</option>
+              <option value="Rentalia">Rentalia</option>
+              <option value="Wimdu">Wimdu</option>
+              <option value="TripAdvisor">TripAdvisor / FlipKey</option>
               <option value="Otra">Otra</option>
             </select>
           </div>
