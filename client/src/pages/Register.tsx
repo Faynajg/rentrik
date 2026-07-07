@@ -53,8 +53,9 @@ const PLANS: PlanCardData[] = [
     features: [
       "Todo lo del Gestor",
       "Propiedades ilimitadas",
-      "Multi-usuario con roles",
-      "Exportación contable",
+      "Ranking de rentabilidad entre propiedades",
+      "Análisis automático de tu portfolio",
+      "Alertas de margen bajo automáticas",
       "Soporte prioritario",
     ],
   },
