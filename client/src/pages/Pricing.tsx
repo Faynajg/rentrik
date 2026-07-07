@@ -111,7 +111,7 @@ export default function Pricing({ publicView = false }: { publicView?: boolean }
         </p>
         <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-positive/25 bg-positive-soft px-4 py-1.5 text-sm font-semibold text-positive">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          14 días gratis · sin tarjeta de crédito
+          14 días gratis · cancela cuando quieras
         </div>
       </div>
 
