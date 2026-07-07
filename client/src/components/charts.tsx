@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Area,
   AreaChart,
@@ -123,26 +124,67 @@ export function ExpensePie({
   );
 }
 
-/** Comparativa de beneficio neto entre propiedades (barras horizontales). */
+const COMPARE_PALETTE = [
+  "#1E3A5F", "#2ECC71", "#C79A3C", "#2C5282", "#DC2626", "#7A5FA6", "#00A699", "#F45D48", "#245ABC", "#EC4899",
+];
+
+type CompareMetric = "net" | "occ" | "margin";
+
+const COMPARE_METRICS: { key: CompareMetric; label: string }[] = [
+  { key: "net", label: "Ingresos netos" },
+  { key: "occ", label: "Ocupación" },
+  { key: "margin", label: "Margen" },
+];
+
+/** Comparativa entre propiedades con toggle (feature 4): ingresos netos / ocupación / margen. */
 export function PropertyComparisonChart({ properties }: { properties: PropertyWithKpis[] }) {
+  const [metric, setMetric] = useState<CompareMetric>("net");
+
+  const valueOf = (p: PropertyWithKpis) =>
+    metric === "net" ? p.kpis.netProfit : metric === "occ" ? p.kpis.occupancyRate : p.kpis.profitMargin;
+
   const data = properties
-    .map((p) => ({ name: p.name, net: p.kpis.netProfit }))
-    .sort((a, b) => b.net - a.net);
+    .map((p) => ({ name: p.name, value: valueOf(p) }))
+    .sort((a, b) => b.value - a.value);
+
+  const fmt = (v: number) => (metric === "net" ? eur(v) : pct(v));
+  const axisFmt = (v: number) => (metric === "net" ? `${v}€` : `${v}%`);
 
   return (
-    <ChartCard title="Comparativa entre propiedades" hint="Beneficio neto">
+    <ChartCard title="Comparativa entre propiedades">
+      <div className="mb-4 inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-xs">
+        {COMPARE_METRICS.map((m) => (
+          <button
+            key={m.key}
+            onClick={() => setMetric(m.key)}
+            className={`rounded-md px-3 py-1.5 font-medium transition ${
+              metric === m.key ? "bg-white text-brand shadow-sm" : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
       <ResponsiveContainer width="100%" height={Math.max(180, data.length * 46)}>
         <BarChart data={data} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 0 }}>
-          <XAxis type="number" tick={{ fontSize: 11, fill: COLORS.slate }} tickFormatter={(v) => `${v}€`} />
+          <XAxis type="number" tick={{ fontSize: 11, fill: COLORS.slate }} tickFormatter={axisFmt} />
           <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 11, fill: COLORS.brand }} />
-          <Tooltip {...tooltipStyle} formatter={(v: number) => [eur(v), "Beneficio neto"]} />
-          <Bar dataKey="net" radius={[0, 4, 4, 0]} maxBarSize={26}>
-            {data.map((d, i) => (
-              <Cell key={i} fill={d.net >= 0 ? COLORS.green : COLORS.red} />
+          <Tooltip {...tooltipStyle} formatter={(v: number) => [fmt(v), COMPARE_METRICS.find((m) => m.key === metric)!.label]} />
+          <Bar dataKey="value" radius={[0, 4, 4, 0]} maxBarSize={26}>
+            {data.map((_, i) => (
+              <Cell key={i} fill={COMPARE_PALETTE[i % COMPARE_PALETTE.length]} />
             ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
+        {data.map((d, i) => (
+          <span key={d.name} className="inline-flex items-center gap-1.5 text-xs text-slate-500">
+            <span className="h-2.5 w-2.5 rounded-full" style={{ background: COMPARE_PALETTE[i % COMPARE_PALETTE.length] }} />
+            {d.name}
+          </span>
+        ))}
+      </div>
     </ChartCard>
   );
 }

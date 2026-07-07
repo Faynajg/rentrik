@@ -9,6 +9,12 @@ const ACCENTS: Record<Accent, { text: string; bar: string; iconBg: string }> = {
   neutral: { text: "text-ink", bar: "bg-slate-300", iconBg: "bg-slate-100 text-slate-500" },
 };
 
+/** Variación vs mes anterior (feature 5): % y si es una mejora. */
+export interface Variation {
+  deltaPct: number;
+  good: boolean;
+}
+
 export function KpiCard({
   label,
   value,
@@ -16,6 +22,7 @@ export function KpiCard({
   accent = "neutral",
   icon,
   highlight = false,
+  variation,
 }: {
   label: string;
   value: string;
@@ -23,6 +30,7 @@ export function KpiCard({
   accent?: Accent;
   icon?: ReactNode;
   highlight?: boolean;
+  variation?: Variation | null;
 }) {
   const a = ACCENTS[accent];
   return (
@@ -37,7 +45,17 @@ export function KpiCard({
         {icon && <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${a.iconBg}`}>{icon}</span>}
       </div>
       <p className={`mt-2 text-2xl font-bold tracking-tight ${a.text}`}>{value}</p>
-      {sub && <p className="mt-1 text-xs text-slate-400">{sub}</p>}
+      {variation ? (
+        <p className="mt-1 flex items-center gap-1 text-xs">
+          <span className={`font-semibold ${variation.good ? "text-positive" : "text-negative"}`}>
+            {variation.deltaPct >= 0 ? "▲" : "▼"} {variation.deltaPct >= 0 ? "+" : ""}
+            {variation.deltaPct}%
+          </span>
+          <span className="text-slate-400">vs mes anterior</span>
+        </p>
+      ) : (
+        sub && <p className="mt-1 text-xs text-slate-400">{sub}</p>
+      )}
     </div>
   );
 }

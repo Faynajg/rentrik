@@ -3,18 +3,21 @@ import { Link } from "react-router-dom";
 import { api, downloadPdf, errorMessage } from "../api/client";
 import { DashboardData } from "../types";
 import { eur, monthLabel, num, pct } from "../lib/format";
-import { KpiCard } from "../components/KpiCard";
+import { KpiCard, Variation } from "../components/KpiCard";
 import { AddPropertyModal } from "../components/AddPropertyModal";
 import { OnboardingChecklist } from "../components/OnboardingChecklist";
 import { PortfolioHealth } from "../components/PortfolioHealth";
+import { PortfolioTriage, PortfolioInsights, PlatformBreakdown, OccupancyRanking } from "../components/PortfolioAnalytics";
+import { BAND_BADGE, BAND_LABEL, marginBand, platformColor } from "../lib/health";
 import { useAuth } from "../context/AuthContext";
-import { Alert, ProfitBadge, Spinner } from "../components/ui";
+import { Alert, Spinner } from "../components/ui";
 import {
   ExpensePie,
   OccupancyChart,
   PropertyComparisonChart,
   RevenueExpenseChart,
 } from "../components/charts";
+import type { EvolutionPoint } from "../types";
 
 const PLATFORMS = ["", "Airbnb", "Booking", "VRBO"];
 
@@ -119,27 +122,32 @@ export default function Dashboard() {
             {/* Salud del portfolio (semáforo) */}
             <PortfolioHealth properties={data.properties} />
 
-            {/* KPIs consolidados */}
+            {/* Necesita atención vs mejores propiedades (feature 1) */}
+            <PortfolioTriage properties={data.properties} month={month} />
+
+            {/* KPIs consolidados con variación vs mes anterior (feature 5) */}
             <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <KpiCard label="Ingresos brutos" value={eur(t.grossRevenue)} accent="brand" />
-              <KpiCard label="Gastos totales" value={eur(t.totalExpenses)} accent="negative" />
-              <KpiCard
-                label="Beneficio neto"
-                value={eur(t.netProfit)}
+              <KpiCard label="Ingresos brutos" value={eur(t.grossRevenue)} accent="brand"
+                variation={variationFor(data.evolution, month, "grossRevenue", true)} />
+              <KpiCard label="Gastos totales" value={eur(t.totalExpenses)} accent="negative"
+                variation={variationFor(data.evolution, month, "totalExpenses", false)} />
+              <KpiCard label="Beneficio neto" value={eur(t.netProfit)}
                 accent={t.netProfit >= 0 ? "positive" : "negative"}
-                sub={`${t.propertiesCount} propiedades`}
-              />
-              <KpiCard label="Ocupación media" value={pct(t.occupancyRate)} accent="neutral" sub={`ADR ${eur(t.adr)}`} />
+                variation={variationFor(data.evolution, month, "netProfit", true)} />
+              <KpiCard label="Ocupación media" value={pct(t.occupancyRate)} accent="neutral"
+                variation={variationFor(data.evolution, month, "occupancyRate", true)} />
             </div>
 
-            {/* Alertas */}
-            <AlertsPanel properties={data.properties} month={month} />
+            {/* Análisis automático (feature 13) */}
+            <PortfolioInsights properties={data.properties} />
 
             {/* Gráficos */}
             <div className="mt-6 grid gap-4 lg:grid-cols-2">
               <RevenueExpenseChart data={data.evolution} />
               <OccupancyChart data={data.evolution} />
               <PropertyComparisonChart properties={data.properties} />
+              <PlatformBreakdown properties={data.properties} />
+              <OccupancyRanking properties={data.properties} month={month} />
               <ExpensePie breakdown={data.expenseBreakdown} />
             </div>
 
@@ -149,27 +157,40 @@ export default function Dashboard() {
               <span className="text-sm text-slate-400">{num(t.reservationsCount)} reservas este mes</span>
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {data.properties.map((p) => (
+              {data.properties.map((p) => {
+                const band = marginBand(p.kpis.profitMargin);
+                const platforms = p.kpis.revenueByPlatform.slice(0, 3);
+                return (
                 <Link
                   key={p.id}
                   to={`/propiedades/${p.id}?month=${month}`}
                   className="card card-hover p-5"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div>
+                    <div className="min-w-0">
                       <h3 className="font-semibold text-ink">{p.name}</h3>
-                      {p.address && <p className="text-xs text-slate-400">{p.address}</p>}
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <ProfitBadge profit={p.kpis.netProfit} />
-                      {p.kpis.occupancyRate < 50 && (
-                        <span className="badge bg-gold-soft text-gold">
-                          <span className="h-1.5 w-1.5 rounded-full bg-gold" />
-                          Ocupación baja
-                        </span>
+                      {p.address && <p className="truncate text-xs text-slate-400">{p.address}</p>}
+                      {platforms.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {platforms.map((pr) => (
+                            <span key={pr.platform} className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-1.5 py-0.5 text-2xs font-medium text-slate-500">
+                              <span className="h-1.5 w-1.5 rounded-full" style={{ background: platformColor(pr.platform) }} />
+                              {pr.platform}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
+                    <span className={`shrink-0 rounded-full px-2 py-1 text-2xs font-bold ${BAND_BADGE[band]}`}>
+                      {BAND_LABEL[band]} · {pct(p.kpis.profitMargin)}
+                    </span>
                   </div>
+
+                  {band === "red" && p.kpis.grossRevenue > 0 && (
+                    <div className="mt-3 rounded-lg border border-negative/20 bg-negative-soft px-3 py-2 text-2xs leading-snug text-negative">
+                      ⚠️ Esta propiedad lleva 30 días con margen bajo. Revisa tus gastos o ajusta el precio mínimo por noche.
+                    </div>
+                  )}
 
                   <div className="mt-4 flex items-end justify-between">
                     <div>
@@ -190,7 +211,8 @@ export default function Dashboard() {
                     <Metric label="RevPAR" value={eur(p.kpis.revpar, 0)} />
                   </div>
                 </Link>
-              ))}
+                );
+              })}
             </div>
           </>
         )
@@ -201,47 +223,26 @@ export default function Dashboard() {
   );
 }
 
-function AlertsPanel({ properties, month }: { properties: DashboardData["properties"]; month: string }) {
-  const critical = properties.filter((p) => p.kpis.netProfit < 0 && p.kpis.totalExpenses > 0);
-  const lowOcc = properties.filter((p) => p.kpis.occupancyRate < 50 && p.kpis.netProfit >= 0);
-  if (critical.length === 0 && lowOcc.length === 0) return null;
+/** Mes anterior a "YYYY-MM". */
+function prevMonthStr(m: string): string {
+  const [y, mm] = m.split("-").map(Number);
+  const d = new Date(y, mm - 2, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
 
-  return (
-    <div className="mt-6 grid gap-3 sm:grid-cols-2">
-      {critical.length > 0 && (
-        <div className="rounded-2xl border border-negative/20 bg-negative-soft p-4">
-          <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-negative text-sm font-bold text-white">!</span>
-            <p className="text-sm font-semibold text-negative">{critical.length} propiedad{critical.length === 1 ? "" : "es"} sin rentabilidad</p>
-          </div>
-          <ul className="mt-2 space-y-1">
-            {critical.map((p) => (
-              <li key={p.id} className="flex justify-between text-sm">
-                <Link to={`/propiedades/${p.id}?month=${month}`} className="text-slate-600 hover:text-negative">{p.name}</Link>
-                <span className="font-medium text-negative">{eur(p.kpis.netProfit)}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {lowOcc.length > 0 && (
-        <div className="rounded-2xl border border-gold/30 bg-gold-soft p-4">
-          <div className="flex items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gold text-sm font-bold text-white">!</span>
-            <p className="text-sm font-semibold text-gold">{lowOcc.length} propiedad{lowOcc.length === 1 ? "" : "es"} con ocupación baja</p>
-          </div>
-          <ul className="mt-2 space-y-1">
-            {lowOcc.map((p) => (
-              <li key={p.id} className="flex justify-between text-sm">
-                <Link to={`/propiedades/${p.id}?month=${month}`} className="text-slate-600 hover:text-gold">{p.name}</Link>
-                <span className="font-medium text-gold">{pct(p.kpis.occupancyRate)}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
+/** Variación de un KPI vs el mes anterior (feature 5). */
+function variationFor(
+  evolution: EvolutionPoint[],
+  month: string,
+  key: keyof Pick<EvolutionPoint, "grossRevenue" | "totalExpenses" | "netProfit" | "occupancyRate">,
+  goodWhenUp: boolean
+): Variation | null {
+  const curr = evolution.find((e) => e.month === month);
+  const prev = evolution.find((e) => e.month === prevMonthStr(month));
+  if (!curr || !prev || !prev[key]) return null;
+  const delta = Math.round(((curr[key] - prev[key]) / Math.abs(prev[key])) * 100);
+  if (!isFinite(delta)) return null;
+  return { deltaPct: delta, good: goodWhenUp ? delta >= 0 : delta <= 0 };
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
