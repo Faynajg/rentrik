@@ -61,6 +61,16 @@ export async function rateToEur(currency: string, date: Date): Promise<number> {
   return rate;
 }
 
+/**
+ * Tipo de cambio aproximado (síncrono, sin red) entre dos monedas, vía EUR.
+ * Para la vista consolidada del dashboard, donde basta una conversión aproximada.
+ */
+export function approxRate(from: string, to: string): number {
+  const f = FALLBACK_TO_EUR[(from || "EUR").toUpperCase()] ?? 1;
+  const t = FALLBACK_TO_EUR[(to || "EUR").toUpperCase()] ?? 1;
+  return t ? f / t : 1;
+}
+
 /** Convierte un importe de una moneda a otra usando el tipo del día (vía EUR). */
 export async function convertAmount(amount: number, from: string, to: string, date: Date): Promise<number> {
   if (!amount) return 0;

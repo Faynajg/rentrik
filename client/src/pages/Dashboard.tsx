@@ -198,6 +198,12 @@ export default function Dashboard() {
                 variation={variationFor(data.evolution, month, "occupancyRate", true)} />
             </div>
 
+            {data.converted && (
+              <p className="mt-2 text-xs text-slate-400">
+                Los importes se han convertido a {data.baseCurrency ?? "EUR"} (aprox.) para la vista consolidada.
+              </p>
+            )}
+
             {/* Análisis automático (feature 13) */}
             <PortfolioInsights properties={data.properties} />
 

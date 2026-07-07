@@ -210,6 +210,8 @@ export interface DashboardData {
   month: string;
   availableMonths: string[];
   setup: SetupStatus;
+  baseCurrency?: string;
+  converted?: boolean;
   totals: {
     grossRevenue: number;
     totalExpenses: number;

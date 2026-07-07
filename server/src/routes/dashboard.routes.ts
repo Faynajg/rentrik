@@ -4,9 +4,41 @@ import { asyncHandler } from "../lib/errors";
 import { requireAuth } from "../middleware/auth";
 import { computeKpis, PropertyKpis } from "../services/kpi";
 import { monthOrCurrent } from "../lib/dates";
+import { approxRate } from "../services/currency";
+import type { Expense, Property, Reservation } from "@prisma/client";
 
 const router = Router();
 router.use(requireAuth);
+
+type PropertyWithData = Property & { reservations: Reservation[]; expenses: Expense[] };
+
+/**
+ * Convierte los importes de cada propiedad de su moneda a la moneda base del
+ * usuario (aproximado), para poder consolidar el portfolio en una sola moneda.
+ * Los gastos porcentuales (isPercent) se dejan igual: escalan solos con los ingresos.
+ */
+function convertToBase(properties: PropertyWithData[], base: string): PropertyWithData[] {
+  return properties.map((p) => {
+    const rate = approxRate(p.currency || "EUR", base);
+    if (rate === 1) return p;
+    return {
+      ...p,
+      reservations: p.reservations.map((r) => ({
+        ...r,
+        grossRevenue: round(r.grossRevenue * rate),
+        platformCommission: round(r.platformCommission * rate),
+        netRevenue: round(r.netRevenue * rate),
+      })),
+      expenses: p.expenses.map((e) => (e.isPercent ? e : { ...e, amount: round(e.amount * rate) })),
+    };
+  });
+}
+
+/** Moneda base del usuario (para el consolidado). */
+async function userBaseCurrency(userId: string | undefined): Promise<string> {
+  const user = userId ? await prisma.user.findUnique({ where: { id: userId } }) : null;
+  return user?.currency ?? "EUR";
+}
 
 // GET /api/dashboard?month=YYYY-MM&platform=Airbnb
 // Resumen consolidado + KPIs por propiedad + datos para gráficos.
@@ -16,7 +48,8 @@ router.get(
     const month = monthOrCurrent(req.query.month as string | undefined);
     const platform = (req.query.platform as string | undefined)?.trim();
 
-    const properties = await prisma.property.findMany({
+    const base = await userBaseCurrency(req.userId);
+    const rawProperties = await prisma.property.findMany({
       where: { userId: req.userId },
       orderBy: { createdAt: "asc" },
       include: {
@@ -24,6 +57,9 @@ router.get(
         expenses: true,
       },
     });
+    // Consolidación: todos los importes en la moneda base del usuario.
+    const converted = rawProperties.some((p) => (p.currency || "EUR") !== base);
+    const properties = convertToBase(rawProperties, base);
 
     // KPIs del mes seleccionado por propiedad.
     const perProperty = properties.map((p) => {
@@ -122,6 +158,8 @@ router.get(
       month,
       availableMonths,
       setup,
+      baseCurrency: base,
+      converted,
       totals: {
         ...totals,
         grossRevenue: round(totals.grossRevenue),
@@ -151,10 +189,12 @@ router.get(
     const year = Number(req.query.year) || new Date().getFullYear();
     const propertyId = (req.query.propertyId as string | undefined) ?? "all";
 
-    const properties = await prisma.property.findMany({
+    const base = await userBaseCurrency(req.userId);
+    const rawProperties = await prisma.property.findMany({
       where: { userId: req.userId, ...(propertyId !== "all" ? { id: propertyId } : {}) },
       include: { reservations: true, expenses: true },
     });
+    const properties = convertToBase(rawProperties, base);
 
     const months = Array.from({ length: 12 }, (_, i) => `${year}-${String(i + 1).padStart(2, "0")}`);
     const series = months.map((m) => {
@@ -188,10 +228,12 @@ router.get(
   "/history",
   asyncHandler(async (req, res) => {
     const propertyId = (req.query.propertyId as string | undefined) ?? "all";
-    const properties = await prisma.property.findMany({
+    const base = await userBaseCurrency(req.userId);
+    const rawProperties = await prisma.property.findMany({
       where: { userId: req.userId, ...(propertyId !== "all" ? { id: propertyId } : {}) },
       include: { reservations: true, expenses: true },
     });
+    const properties = convertToBase(rawProperties, base);
 
     const monthsSet = new Set<string>();
     for (const p of properties) {
