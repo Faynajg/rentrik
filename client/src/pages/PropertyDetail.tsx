@@ -5,6 +5,7 @@ import { Expense, Incident, Kpis, Property, Reservation } from "../types";
 import { eur, formatDate, monthLabel, pct } from "../lib/format";
 import { KpiCard } from "../components/KpiCard";
 import { UploadModal } from "../components/UploadModal";
+import { ImportHistoryModal } from "../components/ImportHistoryModal";
 import { ExpensesModal } from "../components/ExpensesModal";
 import { EditPropertyModal } from "../components/EditPropertyModal";
 import { AddReservationModal } from "../components/AddReservationModal";
@@ -45,6 +46,7 @@ export default function PropertyDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showUpload, setShowUpload] = useState(false);
+  const [showImportHistory, setShowImportHistory] = useState(false);
   const [showExpenses, setShowExpenses] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [showAddReservation, setShowAddReservation] = useState(false);
@@ -188,7 +190,8 @@ export default function PropertyDetail() {
               <option key={m} value={m}>{monthLabel(m)}</option>
             ))}
           </select>
-          <button onClick={() => setShowUpload(true)} className="btn-ghost">Subir CSV</button>
+          <button onClick={() => setShowUpload(true)} className="btn-ghost">Importar CSV/Excel</button>
+          <button onClick={() => setShowImportHistory(true)} className="btn-ghost">Historial</button>
           <button onClick={() => setShowExpenses(true)} className="btn-ghost">Editar gastos</button>
           <button onClick={() => setShowSeasons(true)} className="btn-ghost">Temporadas</button>
           <button onClick={downloadBank} disabled={downloadingBank} className="btn-ghost">
@@ -392,6 +395,7 @@ export default function PropertyDetail() {
       </div>
 
       <UploadModal open={showUpload} propertyId={id!} onClose={() => setShowUpload(false)} onUploaded={load} />
+      <ImportHistoryModal open={showImportHistory} propertyId={id!} onClose={() => setShowImportHistory(false)} onChanged={load} />
       <ExpensesModal
         open={showExpenses}
         propertyId={id!}

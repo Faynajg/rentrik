@@ -35,10 +35,12 @@ model User {
   stripeSubscriptionId String?
   currentPeriodEnd     DateTime?
 
-  properties  Property[]
-  owners      Owner[]
-  resetTokens PasswordResetToken[]
-  reportLogs  ReportLog[]
+  properties     Property[]
+  owners         Owner[]
+  resetTokens    PasswordResetToken[]
+  reportLogs     ReportLog[]
+  importMappings ImportMapping[]
+  importBatches  ImportBatch[]
 }
 
 model PasswordResetToken {
@@ -85,9 +87,10 @@ model Property {
   seasonsConfig String? // JSON con la configuración de temporadas (alta/media/baja)
   createdAt     DateTime @default(now())
 
-  reservations Reservation[]
-  expenses     Expense[]
-  incidents    Incident[]
+  reservations  Reservation[]
+  expenses      Expense[]
+  incidents     Incident[]
+  importBatches ImportBatch[]
 
   @@index([userId])
   @@index([ownerId])
@@ -122,11 +125,54 @@ model Reservation {
   grossRevenue       Float     @default(0)
   platformCommission Float     @default(0)
   netRevenue         Float     @default(0)
+  currency           String    @default("EUR") // moneda original antes de convertir a EUR
   month              String // "YYYY-MM" (según fecha de entrada) para agrupar
   createdAt          DateTime  @default(now())
 
+  importBatchId String?
+  importBatch   ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+
   @@index([propertyId])
   @@index([month])
+  @@index([importBatchId])
+}
+
+// Mapeo de columnas recordado por usuario, identificado por la huella de las
+// cabeceras del archivo. Permite re-importar el mismo formato sin volver a mapear.
+model ImportMapping {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  headersHash String // hash de las cabeceras normalizadas
+  mapping     String // JSON con { checkIn, checkOut, grossRevenue, ... }
+  label       String? // cabeceras legibles, para mostrar al usuario
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, headersHash])
+  @@index([userId])
+}
+
+// Lote de importación: historial y base para deshacer.
+model ImportBatch {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  propertyId String
+  property   Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  filename   String
+  platform   String    @default("Otra")
+  count      Int       @default(0)
+  totalGross Float     @default(0)
+  currency   String    @default("EUR")
+  dateFrom   DateTime?
+  dateTo     DateTime?
+  createdAt  DateTime  @default(now())
+
+  reservations Reservation[]
+
+  @@index([userId])
+  @@index([propertyId])
 }
 
 model Expense {

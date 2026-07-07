@@ -103,15 +103,17 @@ export default function Landing() {
       {/* Trust strip */}
       <section className="border-y border-slate-100 bg-white">
         <div className="section py-8">
-          <p className="text-center text-xs font-semibold uppercase tracking-widest text-slate-400">
-            Compatible con los informes de tus plataformas
-          </p>
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-            {["Airbnb", "Booking.com", "VRBO", "Expedia", "Holidu", "Rentalia", "Wimdu", "TripAdvisor", "CSV genérico"].map((b) => (
-              <span key={b} className="text-lg font-bold text-slate-300 transition hover:text-slate-400">
-                {b}
-              </span>
-            ))}
+          <div className="mx-auto flex max-w-2xl flex-col items-center gap-3 text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand/8 text-brand">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V5a2 2 0 012-2h5.6L19 8.4V18a2 2 0 01-2 2z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <p className="text-lg font-bold tracking-tight text-ink">Compatible con cualquier plataforma</p>
+            <p className="text-sm leading-relaxed text-slate-500">
+              Si exportas a CSV o Excel, Rentrik lo importa. Airbnb, Booking, tu gestor, tu Excel propio
+              — da igual el origen.
+            </p>
           </div>
         </div>
       </section>

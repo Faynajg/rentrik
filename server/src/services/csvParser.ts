@@ -100,7 +100,7 @@ function matchColumn(headers: string[], field: string, used?: Set<string>): stri
 }
 
 /** Convierte un valor monetario ("€1.234,56", "$1,234.56", "1234.5") a número. */
-function parseMoney(value: unknown): number {
+export function parseMoney(value: unknown): number {
   if (value == null || value === "") return 0;
   let s = String(value).replace(/[^\d.,-]/g, "").trim();
   if (!s) return 0;
@@ -118,7 +118,7 @@ function parseMoney(value: unknown): number {
 }
 
 /** Parsea fechas en formatos comunes (ISO, dd/mm/yyyy, mm/dd/yyyy). */
-function parseDate(value: unknown): Date | null {
+export function parseDate(value: unknown): Date | null {
   if (!value) return null;
   const s = String(value).trim();
   if (!s) return null;
@@ -171,7 +171,7 @@ const PLATFORM_TOKENS: [string, string[]][] = [
 ];
 
 /** Busca una marca conocida dentro de un texto ya normalizado. */
-function platformFromText(text: string): string | null {
+export function platformFromText(text: string): string | null {
   for (const [name, tokens] of PLATFORM_TOKENS) {
     if (tokens.some((t) => text.includes(t))) return name;
   }
@@ -179,68 +179,103 @@ function platformFromText(text: string): string | null {
 }
 
 /** Detecta la plataforma a partir de los nombres de columnas conocidos. */
-function detectPlatform(headers: string[]): string {
+export function detectPlatform(headers: string[]): string {
   return platformFromText(headers.map(norm).join(" | ")) ?? "Otra";
 }
 
+// ─── Mapeo de columnas ────────────────────────────────────────────────
+
+/** Mapa de campo canónico → nombre de columna real del archivo (o null). */
+export type ColumnMap = Partial<Record<string, string | null>>;
+
+/** Todos los campos canónicos que Rentrik entiende. */
+export const CANONICAL_FIELDS = [
+  "checkIn", "checkOut", "grossRevenue", "netRevenue",
+  "platformCommission", "nights", "guestName", "bookingDate", "platform",
+] as const;
+
+/** Campos imprescindibles para poder importar una reserva. */
+export const REQUIRED_FIELDS = ["checkIn", "checkOut", "grossRevenue"] as const;
+
+/** Etiquetas legibles (ES) por campo, para el mapeador visual. */
+export const FIELD_LABELS: Record<string, string> = {
+  checkIn: "Fecha de entrada",
+  checkOut: "Fecha de salida",
+  grossRevenue: "Importe (ingresos brutos)",
+  netRevenue: "Ingresos netos",
+  platformCommission: "Comisión de plataforma",
+  nights: "Noches",
+  guestName: "Nombre del huésped",
+  bookingDate: "Fecha de reserva",
+  platform: "Plataforma / canal",
+};
+
 /**
- * Parsea el contenido de un CSV y devuelve reservas normalizadas.
- * @param content contenido del archivo en texto
- * @param forcedPlatform plataforma indicada manualmente por el usuario (opcional)
+ * Mapea automáticamente las cabeceras a los campos canónicos. Cada columna se
+ * asigna de más específico a más genérico y se excluye de los siguientes para
+ * que un campo genérico no robe la columna de otro más concreto.
  */
-export function parseReservationsCsv(
-  content: string,
-  forcedPlatform?: string
-): ParseResult {
-  const result = Papa.parse<Record<string, string>>(content, {
-    header: true,
-    skipEmptyLines: true,
-    transformHeader: (h) => h.trim(),
-  });
-
-  const rows = result.data ?? [];
-  const headers = result.meta.fields ?? [];
-
-  // Se asignan de más específico a más genérico; cada columna asignada se
-  // excluye de las siguientes para que un campo genérico ("plataforma",
-  // "importe"…) no se quede con la columna de otro más concreto.
+export function autoMapColumns(headers: string[]): ColumnMap {
   const used = new Set<string>();
-  const pick = (field: string) => {
+  const map: ColumnMap = {};
+  for (const field of CANONICAL_FIELDS) {
     const col = matchColumn(headers, field, used);
     if (col) used.add(col);
-    return col;
-  };
-  const cols = {
-    checkIn: pick("checkIn"),
-    checkOut: pick("checkOut"),
-    bookingDate: pick("bookingDate"),
-    nights: pick("nights"),
-    platformCommission: pick("platformCommission"),
-    netRevenue: pick("netRevenue"),
-    grossRevenue: pick("grossRevenue"),
-    guestName: pick("guestName"),
-    platform: pick("platform"),
-  };
+    map[field] = col;
+  }
+  return map;
+}
 
-  let detectedPlatform = forcedPlatform || detectPlatform(headers);
+/** Confianza (0-1): fracción de campos requeridos que se mapearon. */
+export function mappingConfidence(map: ColumnMap): number {
+  const got = REQUIRED_FIELDS.filter((f) => map[f]).length;
+  return got / REQUIRED_FIELDS.length;
+}
 
-  // Si por cabeceras no se reconoce, intenta inferir la marca del valor de la
-  // columna de plataforma/canal/portal (Holidu, Rentalia… la ponen ahí).
-  if (!forcedPlatform && detectedPlatform === "Otra" && cols.platform) {
+/** ¿El mapeo cubre todos los campos requeridos? */
+export function isMappingComplete(map: ColumnMap): boolean {
+  return REQUIRED_FIELDS.every((f) => !!map[f]);
+}
+
+/** Huella estable de las cabeceras (normalizadas y ordenadas) para recordar el mapeo. */
+export function fingerprintHeaders(headers: string[]): string {
+  return headers.map(norm).filter(Boolean).sort().join("|");
+}
+
+/** Resuelve la plataforma: forzada > cabeceras > valor de la columna canal. */
+export function resolvePlatform(
+  headers: string[],
+  rows: Record<string, string>[],
+  platformCol: string | null | undefined,
+  forcedPlatform?: string
+): string {
+  let detected = forcedPlatform || detectPlatform(headers);
+  if (!forcedPlatform && detected === "Otra" && platformCol) {
     for (const row of rows) {
-      const raw = row[cols.platform]?.trim();
+      const raw = row[platformCol]?.trim();
       if (!raw) continue;
-      detectedPlatform = platformFromText(norm(raw)) ?? raw;
+      detected = platformFromText(norm(raw)) ?? raw;
       break;
     }
   }
+  return detected;
+}
 
+/**
+ * Construye reservas normalizadas a partir de filas ya parseadas y un mapeo de
+ * columnas explícito (auto o manual). No convierte divisas: eso se hace aparte.
+ */
+export function buildReservations(
+  rows: Record<string, string>[],
+  map: ColumnMap,
+  detectedPlatform: string
+): { reservations: ParsedReservation[]; skipped: number } {
   const reservations: ParsedReservation[] = [];
   let skipped = 0;
 
   for (const row of rows) {
-    const checkIn = cols.checkIn ? parseDate(row[cols.checkIn]) : null;
-    let checkOut = cols.checkOut ? parseDate(row[cols.checkOut]) : null;
+    const checkIn = map.checkIn ? parseDate(row[map.checkIn]) : null;
+    let checkOut = map.checkOut ? parseDate(row[map.checkOut]) : null;
 
     // Sin fecha de entrada no podemos ubicar la reserva en el tiempo.
     if (!checkIn) {
@@ -248,7 +283,7 @@ export function parseReservationsCsv(
       continue;
     }
 
-    let nights = cols.nights ? parseInt(row[cols.nights], 10) : NaN;
+    let nights = map.nights ? parseInt(row[map.nights], 10) : NaN;
     if ((!nights || isNaN(nights)) && checkOut) {
       nights = nightsBetween(checkIn, checkOut);
     }
@@ -257,21 +292,21 @@ export function parseReservationsCsv(
       checkOut = new Date(checkIn.getTime() + nights * 86400000);
     }
 
-    const gross = cols.grossRevenue ? parseMoney(row[cols.grossRevenue]) : 0;
-    let commission = cols.platformCommission ? parseMoney(row[cols.platformCommission]) : 0;
-    let net = cols.netRevenue ? parseMoney(row[cols.netRevenue]) : 0;
+    const gross = map.grossRevenue ? parseMoney(row[map.grossRevenue]) : 0;
+    let commission = map.platformCommission ? parseMoney(row[map.platformCommission]) : 0;
+    let net = map.netRevenue ? parseMoney(row[map.netRevenue]) : 0;
 
     // Completar valores derivables entre sí.
     if (!net && gross) net = Math.max(0, gross - commission);
     if (!commission && gross && net) commission = Math.max(0, gross - net);
     const grossFinal = gross || net + commission;
 
-    const rowPlatform = cols.platform ? row[cols.platform]?.trim() : "";
+    const rowPlatform = map.platform ? row[map.platform]?.trim() : "";
 
     reservations.push({
       platform: rowPlatform || detectedPlatform,
-      guestName: cols.guestName ? row[cols.guestName]?.trim() || null : null,
-      bookingDate: cols.bookingDate ? parseDate(row[cols.bookingDate]) : null,
+      guestName: map.guestName ? row[map.guestName]?.trim() || null : null,
+      bookingDate: map.bookingDate ? parseDate(row[map.bookingDate]) : null,
       checkIn,
       checkOut,
       nights,
@@ -282,10 +317,23 @@ export function parseReservationsCsv(
     });
   }
 
-  return {
-    reservations,
-    detectedPlatform,
-    totalRows: rows.length,
-    skipped,
-  };
+  return { reservations, skipped };
+}
+
+/**
+ * Parsea el contenido de un CSV (texto) con auto-mapeo. Se mantiene por
+ * compatibilidad; el nuevo flujo usa readTabularFile + buildReservations.
+ */
+export function parseReservationsCsv(content: string, forcedPlatform?: string): ParseResult {
+  const result = Papa.parse<Record<string, string>>(content, {
+    header: true,
+    skipEmptyLines: true,
+    transformHeader: (h) => h.trim(),
+  });
+  const rows = result.data ?? [];
+  const headers = result.meta.fields ?? [];
+  const map = autoMapColumns(headers);
+  const detectedPlatform = resolvePlatform(headers, rows, map.platform, forcedPlatform);
+  const { reservations, skipped } = buildReservations(rows, map, detectedPlatform);
+  return { reservations, detectedPlatform, totalRows: rows.length, skipped };
 }
