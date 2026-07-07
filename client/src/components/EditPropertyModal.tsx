@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { api, errorMessage } from "../api/client";
 import { Property } from "../types";
+import { CURRENCIES } from "../lib/currency";
 import { Alert, Modal } from "./ui";
 
 export function EditPropertyModal({
@@ -16,6 +17,7 @@ export function EditPropertyModal({
 }) {
   const [name, setName] = useState(property.name);
   const [address, setAddress] = useState(property.address ?? "");
+  const [currency, setCurrency] = useState(property.currency ?? "EUR");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -24,7 +26,7 @@ export function EditPropertyModal({
     setError("");
     setSaving(true);
     try {
-      await api.patch(`/properties/${property.id}`, { name, address });
+      await api.patch(`/properties/${property.id}`, { name, address, currency });
       onSaved();
       onClose();
     } catch (err) {
@@ -45,6 +47,15 @@ export function EditPropertyModal({
         <div>
           <label className="label">Dirección <span className="text-slate-400">(opcional)</span></label>
           <input className="input" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Calle, ciudad" />
+        </div>
+        <div>
+          <label className="label">Moneda</label>
+          <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+            {Object.values(CURRENCIES).map((c) => (
+              <option key={c.code} value={c.code}>{c.code} · {c.name}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-slate-400">Cambiar la moneda solo afecta a cómo se muestran los importes, no reconvierte los datos ya guardados.</p>
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="btn-ghost">Cancelar</button>

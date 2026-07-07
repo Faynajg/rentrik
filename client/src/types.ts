@@ -157,6 +157,7 @@ export interface Property {
   id: string;
   name: string;
   address: string | null;
+  currency: string;
   seasonsConfig: string | null;
   notes: string | null;
   notesUpdatedAt: string | null;

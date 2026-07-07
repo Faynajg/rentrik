@@ -3,13 +3,13 @@
 // memoria y respaldo aproximado si no hay conexión.
 
 export const KNOWN_CURRENCIES = [
-  "EUR", "USD", "GBP", "MXN", "COP", "ARS", "CLP", "PEN", "BRL", "CAD", "AUD", "CHF",
+  "EUR", "USD", "GBP", "MXN", "COP", "ARS", "CLP", "PEN", "DOP", "BRL", "CAD", "AUD", "CHF",
 ];
 
 // Respaldo aproximado (moneda → EUR) si la API de tipos de cambio no responde.
 const FALLBACK_TO_EUR: Record<string, number> = {
   EUR: 1, USD: 0.92, GBP: 1.17, MXN: 0.055, COP: 0.00025, ARS: 0.0011,
-  CLP: 0.0011, PEN: 0.25, BRL: 0.18, CAD: 0.68, AUD: 0.6, CHF: 1.05,
+  CLP: 0.0011, PEN: 0.25, DOP: 0.016, BRL: 0.18, CAD: 0.68, AUD: 0.6, CHF: 1.05,
 };
 
 /** Intenta detectar la moneda de un texto por código ISO o símbolo. */
@@ -59,4 +59,16 @@ export async function rateToEur(currency: string, date: Date): Promise<number> {
   }
   rateCache.set(key, rate);
   return rate;
+}
+
+/** Convierte un importe de una moneda a otra usando el tipo del día (vía EUR). */
+export async function convertAmount(amount: number, from: string, to: string, date: Date): Promise<number> {
+  if (!amount) return 0;
+  const f = (from || "EUR").toUpperCase();
+  const t = (to || "EUR").toUpperCase();
+  if (f === t) return amount;
+  const rf = await rateToEur(f, date); // from → EUR
+  const rt = await rateToEur(t, date); // to → EUR
+  if (!rt) return amount;
+  return Math.round((amount * (rf / rt)) * 100) / 100;
 }

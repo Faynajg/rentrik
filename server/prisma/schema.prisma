@@ -85,6 +85,7 @@ model Property {
   owner         Owner?   @relation(fields: [ownerId], references: [id], onDelete: SetNull)
   name          String
   address       String?
+  currency      String   @default("EUR") // moneda de la propiedad (importes y KPIs)
   seasonsConfig String? // JSON con la configuración de temporadas (alta/media/baja)
   notes         String? // notas libres del usuario (reparaciones, incidencias…)
   notesUpdatedAt DateTime? // última vez que se guardó la nota

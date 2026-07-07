@@ -19,7 +19,7 @@ import {
   resolvePlatform,
   ParsedReservation,
 } from "../services/csvParser";
-import { detectCurrency, KNOWN_CURRENCIES, rateToEur } from "../services/currency";
+import { convertAmount, detectCurrency, KNOWN_CURRENCIES } from "../services/currency";
 
 const router = Router();
 router.use(requireAuth);
@@ -34,20 +34,20 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 const dayKey = (d: Date) => d.toISOString().slice(0, 10);
 const isRequired = (f: string) => (REQUIRED_FIELDS as readonly string[]).includes(f);
 
-/** Convierte los importes de las reservas a EUR según el tipo del día de cada reserva. */
-async function convertToEur(
+/** Convierte los importes de las reservas de una moneda a otra (tipo del día de cada reserva). */
+async function convertReservations(
   reservations: ParsedReservation[],
-  currency: string
+  from: string,
+  to: string
 ): Promise<ParsedReservation[]> {
-  if ((currency || "EUR").toUpperCase() === "EUR") return reservations;
+  if ((from || "EUR").toUpperCase() === (to || "EUR").toUpperCase()) return reservations;
   const out: ParsedReservation[] = [];
   for (const r of reservations) {
-    const rate = await rateToEur(currency, r.checkIn);
     out.push({
       ...r,
-      grossRevenue: round2(r.grossRevenue * rate),
-      netRevenue: round2(r.netRevenue * rate),
-      platformCommission: round2(r.platformCommission * rate),
+      grossRevenue: await convertAmount(r.grossRevenue, from, to, r.checkIn),
+      netRevenue: await convertAmount(r.netRevenue, from, to, r.checkIn),
+      platformCommission: await convertAmount(r.platformCommission, from, to, r.checkIn),
     });
   }
   return out;
@@ -140,15 +140,17 @@ router.post(
     const mapping = providedMap ?? savedMap ?? auto;
     const complete = isMappingComplete(mapping);
 
+    // Moneda del archivo (origen) y moneda de la propiedad (destino).
     const currencyForced = (req.body.currency as string | undefined)?.trim().toUpperCase() || undefined;
-    const currency = currencyForced || detectFileCurrency(rows, mapping.grossRevenue);
+    const sourceCurrency = currencyForced || detectFileCurrency(rows, mapping.grossRevenue);
+    const targetCurrency = property.currency;
 
     const detectedPlatform = resolvePlatform(headers, rows, mapping.platform, forced);
 
     let summary = null as null | ReturnType<typeof summarize> & { duplicates: number; skipped: number };
     if (complete) {
       const built = buildReservations(rows, mapping, detectedPlatform);
-      const converted = await convertToEur(built.reservations, currency);
+      const converted = await convertReservations(built.reservations, sourceCurrency, targetCurrency);
       const { duplicates } = await partitionDuplicates(property.id, converted);
       summary = { ...summarize(converted), duplicates: duplicates.length, skipped: built.skipped };
     }
@@ -164,7 +166,8 @@ router.post(
       autoImportable: complete,
       needsMapping: !complete,
       detectedPlatform,
-      currency,
+      currency: sourceCurrency,
+      targetCurrency,
       knownCurrencies: KNOWN_CURRENCIES,
       summary,
     });
@@ -201,7 +204,8 @@ router.post(
     }
 
     const forced = body.platform?.trim() || undefined;
-    const currency = body.currency?.trim().toUpperCase() || detectFileCurrency(rows, mapping.grossRevenue);
+    const sourceCurrency = body.currency?.trim().toUpperCase() || detectFileCurrency(rows, mapping.grossRevenue);
+    const currency = property.currency; // moneda destino: la de la propiedad
     const skipDuplicates = body.skipDuplicates === "true";
     const saveMapping = body.saveMapping === "true";
 
@@ -210,7 +214,7 @@ router.post(
     if (built.reservations.length === 0) {
       throw new ApiError(422, "No se han podido extraer reservas del archivo. Revisa el mapeo de columnas.");
     }
-    const converted = await convertToEur(built.reservations, currency);
+    const converted = await convertReservations(built.reservations, sourceCurrency, currency);
     const { unique, duplicates } = await partitionDuplicates(property.id, converted);
     const finalList = skipDuplicates ? unique : converted;
 

@@ -32,6 +32,7 @@ interface AnalyzeResp {
   needsMapping: boolean;
   detectedPlatform: string;
   currency: string;
+  targetCurrency: string;
   knownCurrencies: string[];
   summary: Summary | null;
 }
@@ -331,7 +332,7 @@ export function UploadModal({
                 )}
               </div>
 
-              {/* Moneda */}
+              {/* Moneda del archivo (origen) */}
               <div>
                 <label className="label">Moneda del archivo</label>
                 <select className="input" value={currency} onChange={(e) => refreshSummary(e.target.value)}>
@@ -339,9 +340,9 @@ export function UploadModal({
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
-                {currency !== "EUR" && (
+                {currency !== analysis.targetCurrency && (
                   <p className="mt-1 text-xs text-slate-400">
-                    Los importes se convertirán a EUR con el tipo de cambio del día de cada reserva.
+                    Los importes se convertirán a {analysis.targetCurrency} (moneda de la propiedad) con el tipo de cambio del día de cada reserva.
                   </p>
                 )}
               </div>

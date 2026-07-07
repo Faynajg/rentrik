@@ -2,7 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api, downloadFile, downloadPdf, errorMessage } from "../api/client";
 import { Expense, Incident, Kpis, Property, Reservation } from "../types";
-import { eur, formatDate, monthLabel, pct } from "../lib/format";
+import { eur, formatDate, monthLabel, pct, setActiveCurrency } from "../lib/format";
+import { CURRENCIES } from "../lib/currency";
 import { KpiCard } from "../components/KpiCard";
 import { UploadModal } from "../components/UploadModal";
 import { ImportHistoryModal } from "../components/ImportHistoryModal";
@@ -73,6 +74,19 @@ export default function PropertyDetail() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Al salir del detalle, restaura la moneda base del usuario para el resto de la app.
+  useEffect(() => () => setActiveCurrency(user?.currency ?? "EUR"), [user?.currency]);
+
+  async function changeCurrency(code: string) {
+    setError("");
+    try {
+      await api.patch(`/properties/${id}`, { currency: code });
+      await load();
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  }
 
   // Abre automáticamente el modal indicado desde el onboarding (?upload=1 / ?expenses=1).
   useEffect(() => {
@@ -148,6 +162,8 @@ export default function PropertyDetail() {
   if (!data) return <Alert kind="error">{error || "No se pudo cargar la propiedad."}</Alert>;
 
   const { property, kpis, reservations, expenses, incidents } = data;
+  // Todos los importes de esta vista se muestran en la moneda de la propiedad.
+  setActiveCurrency(property.currency);
   const evolution = data.history.map((h) => ({
     month: h.month,
     grossRevenue: h.grossRevenue,
@@ -187,6 +203,16 @@ export default function PropertyDetail() {
           {property.address && <p className="text-sm text-slate-500">{property.address}</p>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <select
+            className="input !w-auto !py-2 font-semibold"
+            value={property.currency}
+            onChange={(e) => changeCurrency(e.target.value)}
+            title="Moneda de la propiedad"
+          >
+            {Object.values(CURRENCIES).map((c) => (
+              <option key={c.code} value={c.code}>{c.symbol} {c.code}</option>
+            ))}
+          </select>
           <select className="input !w-auto !py-2" value={month} onChange={(e) => changeMonth(e.target.value)}>
             {monthOptions.map((m) => (
               <option key={m} value={m}>{monthLabel(m)}</option>

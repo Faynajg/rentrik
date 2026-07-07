@@ -6,6 +6,9 @@ import { requireAuth } from "../middleware/auth";
 import { computeKpis } from "../services/kpi";
 import { getPlan } from "../lib/plans";
 import { currentMonth, monthOrCurrent } from "../lib/dates";
+import { CURRENCIES } from "../lib/currency";
+
+const validCurrency = (code?: string) => (code && CURRENCIES[code] ? code : "EUR");
 
 const router = Router();
 router.use(requireAuth);
@@ -54,6 +57,7 @@ router.post(
     const schema = z.object({
       name: z.string().min(1, "El nombre es obligatorio"),
       address: z.string().optional(),
+      currency: z.string().optional(),
     });
     const data = schema.parse(req.body);
 
@@ -76,7 +80,12 @@ router.post(
     }
 
     const property = await prisma.property.create({
-      data: { userId: req.userId!, name: data.name, address: data.address ?? null },
+      data: {
+        userId: req.userId!,
+        name: data.name,
+        address: data.address ?? null,
+        currency: validCurrency(data.currency),
+      },
     });
     res.status(201).json({ property });
   })
@@ -132,6 +141,7 @@ router.patch(
       .object({
         name: z.string().min(1, "El nombre es obligatorio").optional(),
         address: z.string().optional(),
+        currency: z.string().optional(),
         notes: z.string().max(2000, "Máximo 2000 caracteres").optional(),
       })
       .parse(req.body);
@@ -141,6 +151,7 @@ router.patch(
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.address !== undefined ? { address: data.address || null } : {}),
+        ...(data.currency !== undefined ? { currency: validCurrency(data.currency) } : {}),
         ...(data.notes !== undefined ? { notes: data.notes || null, notesUpdatedAt: new Date() } : {}),
       },
     });

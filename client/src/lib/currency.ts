@@ -13,6 +13,9 @@ export const CURRENCIES: Record<string, Currency> = {
   ARS: { code: "ARS", symbol: "$", locale: "es-AR", name: "Peso argentino ($)" },
   CLP: { code: "CLP", symbol: "$", locale: "es-CL", name: "Peso chileno ($)" },
   PEN: { code: "PEN", symbol: "S/", locale: "es-PE", name: "Sol peruano (S/)" },
+  DOP: { code: "DOP", symbol: "RD$", locale: "es-DO", name: "Peso dominicano (RD$)" },
+  GBP: { code: "GBP", symbol: "£", locale: "en-GB", name: "Libra esterlina (£)" },
+  BRL: { code: "BRL", symbol: "R$", locale: "pt-BR", name: "Real brasileño (R$)" },
 };
 
 export function getCurrency(code: string): Currency {

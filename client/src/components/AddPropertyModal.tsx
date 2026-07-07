@@ -1,5 +1,7 @@
 import { FormEvent, useState } from "react";
 import { api, errorMessage } from "../api/client";
+import { CURRENCIES } from "../lib/currency";
+import { useAuth } from "../context/AuthContext";
 import { Alert, Modal } from "./ui";
 
 export function AddPropertyModal({
@@ -11,8 +13,10 @@ export function AddPropertyModal({
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [currency, setCurrency] = useState(user?.currency ?? "EUR");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +25,7 @@ export function AddPropertyModal({
     setError("");
     setLoading(true);
     try {
-      await api.post("/properties", { name, address: address || undefined });
+      await api.post("/properties", { name, address: address || undefined, currency });
       setName("");
       setAddress("");
       onCreated();
@@ -44,6 +48,15 @@ export function AddPropertyModal({
         <div>
           <label className="label">Dirección <span className="text-slate-400">(opcional)</span></label>
           <input className="input" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Calle, ciudad" />
+        </div>
+        <div>
+          <label className="label">Moneda</label>
+          <select className="input" value={currency} onChange={(e) => setCurrency(e.target.value)}>
+            {Object.values(CURRENCIES).map((c) => (
+              <option key={c.code} value={c.code}>{c.code} · {c.name}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-slate-400">Los importes y KPIs de esta propiedad se mostrarán en esta moneda.</p>
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" onClick={onClose} className="btn-ghost">Cancelar</button>
