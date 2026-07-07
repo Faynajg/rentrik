@@ -87,7 +87,7 @@ export default function Landing() {
               </Link>
             </div>
             <p className="mt-4 flex items-center justify-center gap-4 text-xs text-slate-400">
-              <span className="inline-flex items-center gap-1.5"><Check /> Sin tarjeta de crédito</span>
+              <span className="inline-flex items-center gap-1.5"><Check /> Cancela cuando quieras</span>
               <span className="inline-flex items-center gap-1.5"><Check /> Configúralo en minutos</span>
             </p>
           </div>
@@ -218,7 +218,7 @@ export default function Landing() {
               Empieza a saber si tus propiedades ganan dinero
             </h2>
             <p className="mx-auto mt-4 max-w-lg text-slate-500">
-              14 días de prueba gratuita. Sin tarjeta de crédito. Configúralo hoy mismo.
+              14 días de prueba gratuita. Cancela cuando quieras. Configúralo hoy mismo.
             </p>
             <Link to="/registro" className="btn-primary btn-lg mt-8">
               Crear mi cuenta gratis

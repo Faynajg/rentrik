@@ -57,7 +57,7 @@ export default function Register() {
   }
 
   return (
-    <AuthLayout title="Crea tu cuenta" subtitle="14 días de prueba gratis · sin tarjeta">
+    <AuthLayout title="Crea tu cuenta" subtitle="14 días de prueba gratis · cancela cuando quieras">
       <form onSubmit={onSubmit} className="space-y-4">
         {error && <Alert kind="error">{error}</Alert>}
         <div>
