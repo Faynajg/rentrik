@@ -17,6 +17,7 @@ import exportRoutes from "./routes/export.routes";
 import incidentsRoutes from "./routes/incidents.routes";
 import portalRoutes from "./routes/portal.routes";
 import importsRoutes from "./routes/imports.routes";
+import demoRoutes from "./routes/demo.routes";
 
 export function createApp() {
   const app = express();
@@ -45,6 +46,7 @@ export function createApp() {
   app.use("/api/export", exportRoutes);
   app.use("/api/portal", portalRoutes);
   app.use("/api", importsRoutes); // /api/properties/:id/import/*, /api/imports/*
+  app.use("/api/demo", demoRoutes);
 
   // En producción, sirve el frontend compilado (una sola URL para toda la app).
   const clientDist = path.resolve(__dirname, "../../client/dist");

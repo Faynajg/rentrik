@@ -43,6 +43,7 @@ function publicUser(u: {
   autoSendDay: number;
   subscriptionStatus: string;
   trialEndsAt: Date | null;
+  demoMode?: boolean;
 }) {
   return {
     id: u.id,
@@ -58,6 +59,7 @@ function publicUser(u: {
     subscriptionStatus: u.subscriptionStatus,
     trialEndsAt: u.trialEndsAt,
     trialDaysLeft: trialDaysLeft(u.trialEndsAt),
+    demoMode: u.demoMode ?? false,
   };
 }
 

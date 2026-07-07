@@ -21,6 +21,7 @@ export interface User {
   subscriptionStatus: string;
   trialEndsAt: string | null;
   trialDaysLeft: number;
+  demoMode?: boolean;
 }
 
 export interface OwnerSummary {
@@ -157,6 +158,9 @@ export interface Property {
   name: string;
   address: string | null;
   seasonsConfig: string | null;
+  notes: string | null;
+  notesUpdatedAt: string | null;
+  isDemo?: boolean;
   createdAt: string;
 }
 

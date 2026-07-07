@@ -53,6 +53,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="flex items-center gap-3">
+            {user?.demoMode && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-brand px-2.5 py-1 text-2xs font-bold uppercase tracking-wide text-white">
+                <span className="h-1.5 w-1.5 rounded-full bg-white/80" />
+                Demo
+              </span>
+            )}
             <span className="hidden items-center gap-1.5 rounded-full border border-gold/30 bg-gold-soft px-2.5 py-1 text-2xs font-semibold text-gold sm:inline-flex">
               <span className="h-1.5 w-1.5 rounded-full bg-gold" />
               Plan {user?.planInfo.name}

@@ -26,6 +26,7 @@ model User {
   // Auto-envío mensual de informes a propietarios
   autoSendReports Boolean @default(false)
   autoSendDay     Int     @default(2) // día del mes en que se envían (informe del mes anterior)
+  demoMode        Boolean @default(false) // el usuario está viendo datos de ejemplo
 
   // Facturación (Stripe)
   subscriptionStatus   String    @default("trialing") // trialing | active | past_due | canceled | none
@@ -85,6 +86,9 @@ model Property {
   name          String
   address       String?
   seasonsConfig String? // JSON con la configuración de temporadas (alta/media/baja)
+  notes         String? // notas libres del usuario (reparaciones, incidencias…)
+  notesUpdatedAt DateTime? // última vez que se guardó la nota
+  isDemo        Boolean  @default(false) // propiedad de datos de ejemplo (modo demo)
   createdAt     DateTime @default(now())
 
   reservations  Reservation[]

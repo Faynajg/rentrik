@@ -7,6 +7,7 @@ import { KpiCard } from "../components/KpiCard";
 import { UploadModal } from "../components/UploadModal";
 import { ImportHistoryModal } from "../components/ImportHistoryModal";
 import { ProfitWaterfall, EarnedProgress, FixedVariableSplit, ExpenseCategoryBars } from "../components/PropertyBreakdowns";
+import { PropertyNotes } from "../components/PropertyNotes";
 import { ExpensesModal } from "../components/ExpensesModal";
 import { EditPropertyModal } from "../components/EditPropertyModal";
 import { AddReservationModal } from "../components/AddReservationModal";
@@ -404,6 +405,16 @@ export default function PropertyDetail() {
 
       {/* Incidencias (feature 8) */}
       <IncidentsSection propertyId={id!} incidents={incidents} onChange={load} />
+
+      {/* Notas de la propiedad (feature 10) */}
+      <div className="mt-6">
+        <PropertyNotes
+          propertyId={property.id}
+          initialNotes={property.notes}
+          updatedAt={property.notesUpdatedAt}
+          onSaved={load}
+        />
+      </div>
 
       <div className="mt-8 flex justify-end">
         <button onClick={deleteProperty} className="text-sm text-negative hover:underline">

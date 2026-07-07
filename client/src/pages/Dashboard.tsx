@@ -21,8 +21,10 @@ import type { EvolutionPoint } from "../types";
 
 const PLATFORMS = ["", "Airbnb", "Booking", "VRBO"];
 
+type SortKey = "net" | "margin" | "occ" | "name";
+
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
   const [month, setMonth] = useState<string>(currentMonth());
   const [platform, setPlatform] = useState("");
@@ -30,6 +32,37 @@ export default function Dashboard() {
   const [error, setError] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<SortKey>("net");
+  const [demoLoading, setDemoLoading] = useState(false);
+
+  async function loadDemo() {
+    setDemoLoading(true);
+    setError("");
+    try {
+      await api.post("/demo/load");
+      await refreshUser?.();
+      await load();
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setDemoLoading(false);
+    }
+  }
+
+  async function exitDemo() {
+    setDemoLoading(true);
+    setError("");
+    try {
+      await api.post("/demo/exit");
+      await refreshUser?.();
+      await load();
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setDemoLoading(false);
+    }
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -54,6 +87,19 @@ export default function Dashboard() {
     set.add(currentMonth());
     return Array.from(set).sort().reverse();
   }, [data, month]);
+
+  // Buscador + ordenación de la lista de propiedades (feature 11).
+  const displayedProperties = useMemo(() => {
+    const list = (data?.properties ?? []).filter((p) =>
+      p.name.toLowerCase().includes(search.trim().toLowerCase())
+    );
+    return [...list].sort((a, b) => {
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      if (sortBy === "margin") return b.kpis.profitMargin - a.kpis.profitMargin;
+      if (sortBy === "occ") return b.kpis.occupancyRate - a.kpis.occupancyRate;
+      return b.kpis.netProfit - a.kpis.netProfit;
+    });
+  }, [data, search, sortBy]);
 
   async function downloadManager() {
     setDownloading(true);
@@ -103,6 +149,18 @@ export default function Dashboard() {
 
       {error && <div className="mt-4"><Alert kind="error">{error}</Alert></div>}
 
+      {/* Banner de modo demo */}
+      {user?.demoMode && (
+        <div className="mt-4 flex flex-col gap-2 rounded-xl border border-brand/20 bg-brand/[0.04] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-slate-600">
+            <strong className="text-brand">Estás viendo datos de ejemplo.</strong> Explora Rentrik con 3 propiedades ficticias.
+          </p>
+          <button onClick={exitDemo} disabled={demoLoading} className="btn-ghost btn-sm shrink-0">
+            {demoLoading ? "Saliendo…" : "Salir del modo demo"}
+          </button>
+        </div>
+      )}
+
       {/* Onboarding guiado para usuarios nuevos */}
       {!loading && setup && !onboardingComplete && (
         <div className="mt-6">
@@ -116,7 +174,9 @@ export default function Dashboard() {
 
       {loading && !data ? (
         <Spinner label="Cargando dashboard…" />
-      ) : !hasProperties ? null : (
+      ) : !hasProperties ? (
+        <DemoPrompt onUpload={() => setShowAdd(true)} onDemo={loadDemo} loading={demoLoading} />
+      ) : (
         t && (
           <>
             {/* Salud del portfolio (semáforo) */}
@@ -152,12 +212,32 @@ export default function Dashboard() {
             </div>
 
             {/* Propiedades */}
-            <div className="mt-8 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-ink">Propiedades</h2>
-              <span className="text-sm text-slate-400">{num(t.reservationsCount)} reservas este mes</span>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-lg font-semibold text-ink">
+                Propiedades <span className="text-sm font-normal text-slate-400">· {num(t.reservationsCount)} reservas</span>
+              </h2>
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  className="input !w-auto !py-2"
+                  placeholder="Buscar propiedad…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <select className="input !w-auto !py-2" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortKey)}>
+                  <option value="net">Ordenar: Ingresos netos</option>
+                  <option value="margin">Ordenar: Margen</option>
+                  <option value="occ">Ordenar: Ocupación</option>
+                  <option value="name">Ordenar: Nombre</option>
+                </select>
+              </div>
             </div>
+            {displayedProperties.length === 0 ? (
+              <p className="mt-4 rounded-xl border border-slate-100 bg-white py-8 text-center text-sm text-slate-400">
+                Ninguna propiedad coincide con "{search}".
+              </p>
+            ) : (
             <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {data.properties.map((p) => {
+              {displayedProperties.map((p) => {
                 const band = marginBand(p.kpis.profitMargin);
                 const platforms = p.kpis.revenueByPlatform.slice(0, 3);
                 return (
@@ -214,6 +294,7 @@ export default function Dashboard() {
                 );
               })}
             </div>
+            )}
           </>
         )
       )}
@@ -243,6 +324,30 @@ function variationFor(
   const delta = Math.round(((curr[key] - prev[key]) / Math.abs(prev[key])) * 100);
   if (!isFinite(delta)) return null;
   return { deltaPct: delta, good: goodWhenUp ? delta >= 0 : delta <= 0 };
+}
+
+/** Feature 12 — dos opciones para el usuario nuevo sin propiedades. */
+function DemoPrompt({ onUpload, onDemo, loading }: { onUpload: () => void; onDemo: () => void; loading: boolean }) {
+  return (
+    <div className="mt-8 grid gap-4 sm:grid-cols-2">
+      <button onClick={onUpload} className="card card-hover flex flex-col items-start gap-2 p-6 text-left">
+        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand/8 text-brand">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 16V4m0 0l-4 4m4-4l4 4M4 20h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </span>
+        <h3 className="text-lg font-bold text-ink">Subir mis datos</h3>
+        <p className="text-sm text-slate-500">Crea tu primera propiedad e importa tu CSV o Excel de ingresos.</p>
+      </button>
+      <button onClick={onDemo} disabled={loading} className="card card-hover flex flex-col items-start gap-2 p-6 text-left disabled:opacity-60">
+        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-positive-soft text-positive">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7z" fill="currentColor" /></svg>
+        </span>
+        <h3 className="text-lg font-bold text-ink">Ver cómo funciona con datos de ejemplo</h3>
+        <p className="text-sm text-slate-500">
+          {loading ? "Cargando ejemplo…" : "Carga 3 propiedades ficticias con reservas y gastos realistas para explorar Rentrik."}
+        </p>
+      </button>
+    </div>
+  );
 }
 
 function Metric({ label, value }: { label: string; value: string }) {

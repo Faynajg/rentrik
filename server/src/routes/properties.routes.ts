@@ -60,6 +60,12 @@ router.post(
     const user = await prisma.user.findUnique({ where: { id: req.userId } });
     if (!user) throw new ApiError(404, "Usuario no encontrado");
 
+    // Al crear su primera propiedad real, se retira el modo demo (borra el ejemplo).
+    await prisma.property.deleteMany({ where: { userId: req.userId!, isDemo: true } });
+    if (user.demoMode) {
+      await prisma.user.update({ where: { id: req.userId! }, data: { demoMode: false } });
+    }
+
     const count = await prisma.property.count({ where: { userId: req.userId } });
     const plan = getPlan(user.plan);
     if (count >= plan.maxProperties) {
@@ -126,6 +132,7 @@ router.patch(
       .object({
         name: z.string().min(1, "El nombre es obligatorio").optional(),
         address: z.string().optional(),
+        notes: z.string().max(2000, "Máximo 2000 caracteres").optional(),
       })
       .parse(req.body);
 
@@ -134,6 +141,7 @@ router.patch(
       data: {
         ...(data.name !== undefined ? { name: data.name } : {}),
         ...(data.address !== undefined ? { address: data.address || null } : {}),
+        ...(data.notes !== undefined ? { notes: data.notes || null, notesUpdatedAt: new Date() } : {}),
       },
     });
     res.json({ property: updated });
