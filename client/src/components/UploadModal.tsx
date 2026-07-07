@@ -48,9 +48,10 @@ export function UploadModal({
       const fd = new FormData();
       fd.append("file", file);
       if (platform) fd.append("platform", platform);
-      const res = await api.post<UploadResult>(`/properties/${propertyId}/reservations/upload`, fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      // No fijamos Content-Type: axios añade automáticamente el
+      // "multipart/form-data; boundary=..." que el servidor necesita para
+      // parsear el archivo. Fijarlo a mano rompe el boundary y multer no lo lee.
+      const res = await api.post<UploadResult>(`/properties/${propertyId}/reservations/upload`, fd);
       setResult(res.data);
       onUploaded();
     } catch (err) {
