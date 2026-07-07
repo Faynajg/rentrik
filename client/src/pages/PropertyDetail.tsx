@@ -6,6 +6,7 @@ import { eur, formatDate, monthLabel, pct } from "../lib/format";
 import { KpiCard } from "../components/KpiCard";
 import { UploadModal } from "../components/UploadModal";
 import { ImportHistoryModal } from "../components/ImportHistoryModal";
+import { ProfitWaterfall, EarnedProgress, FixedVariableSplit, ExpenseCategoryBars } from "../components/PropertyBreakdowns";
 import { ExpensesModal } from "../components/ExpensesModal";
 import { EditPropertyModal } from "../components/EditPropertyModal";
 import { AddReservationModal } from "../components/AddReservationModal";
@@ -145,7 +146,7 @@ export default function PropertyDetail() {
   if (loading && !data) return <Spinner label="Cargando propiedad…" />;
   if (!data) return <Alert kind="error">{error || "No se pudo cargar la propiedad."}</Alert>;
 
-  const { property, kpis, reservations, incidents } = data;
+  const { property, kpis, reservations, expenses, incidents } = data;
   const evolution = data.history.map((h) => ({
     month: h.month,
     grossRevenue: h.grossRevenue,
@@ -242,6 +243,17 @@ export default function PropertyDetail() {
         <KpiCard label="Comisiones OTA" value={eur(kpis.platformCommission)} accent="negative" />
       </div>
 
+      {/* Cascada de rentabilidad (feature 9) */}
+      <div className="mt-6">
+        <ProfitWaterfall kpis={kpis} />
+      </div>
+
+      {/* Ganado hasta ahora + fijos vs variables (features 7 y 8) */}
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <EarnedProgress reservations={reservations} />
+        <FixedVariableSplit kpis={kpis} />
+      </div>
+
       {/* IVA repercutido estimado */}
       {user && user.ivaRate > 0 && kpis.grossRevenue > 0 && (
         <div className="mt-4 flex items-center justify-between rounded-xl border border-slate-100 bg-white px-4 py-3 text-sm shadow-card">
@@ -281,6 +293,11 @@ export default function PropertyDetail() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Gastos por concepto con barras + ratio de gastos (feature 3) */}
+      <div className="mt-4">
+        <ExpenseCategoryBars expenses={expenses} kpis={kpis} />
       </div>
 
       {/* Ingresos por plataforma */}
