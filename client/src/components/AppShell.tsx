@@ -35,7 +35,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Link to="/dashboard">
               <Logo size={26} />
             </Link>
-            <nav className="hidden items-center gap-1 md:flex">
+            <nav className="hidden items-center gap-1 lg:flex">
               {links.map((l) => (
                 <NavLink
                   key={l.to}
@@ -74,7 +74,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <p className="text-sm font-semibold text-slate-700">{user?.name}</p>
                     <p className="truncate text-xs text-slate-400">{user?.email}</p>
                   </div>
-                  <div className="border-b border-slate-100 py-1 md:hidden">
+                  <div className="border-b border-slate-100 py-1 lg:hidden">
                     {links.map((l) => (
                       <Link key={l.to} to={l.to} className="block px-4 py-2 text-sm text-slate-600 hover:bg-slate-50" onClick={() => setMenuOpen(false)}>
                         {l.label}

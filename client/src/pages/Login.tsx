@@ -51,7 +51,7 @@ export default function Login() {
       <p className="mt-6 text-center text-sm text-slate-500">
         ¿No tienes cuenta?{" "}
         <Link to="/registro" className="font-semibold text-brand hover:underline">
-          Regístrate gratis
+          Prueba 14 días gratis
         </Link>
       </p>
       <div className="mt-5 rounded-xl border border-slate-100 bg-canvas px-4 py-3 text-center text-xs text-slate-400">
@@ -64,7 +64,7 @@ export default function Login() {
 const BENEFITS = [
   "Beneficio neto real de cada propiedad",
   "Informes PDF para propietario y gestora",
-  "Compatible con Airbnb, Booking y VRBO",
+  "Compatible con Airbnb, Booking, VRBO y más OTAs",
 ];
 
 export function AuthLayout({

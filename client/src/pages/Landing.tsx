@@ -4,7 +4,7 @@ import { Logo } from "../components/Logo";
 const features = [
   {
     title: "Sube tus ingresos de cualquier OTA",
-    desc: "Airbnb, Booking, VRBO, PriceLabs… Sube el CSV y Rentrik detecta el formato automáticamente.",
+    desc: "Airbnb, Booking, VRBO, Expedia, Holidu y más. Sube el CSV y Rentrik detecta el formato automáticamente.",
     icon: "M12 3v12m0 0l4-4m-4 4l-4-4M4 21h16",
   },
   {
@@ -70,7 +70,7 @@ export default function Landing() {
                   <path d="M2 7C50 2 150 2 198 6" stroke="#2ECC71" strokeWidth="3" strokeLinecap="round" />
                 </svg>
               </span>{" "}
-              con tu Airbnb o solo lo crees?
+              con tu alquiler vacacional o solo lo crees?
             </h1>
             <p className="mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-slate-500 animate-fadeUp">
               Rentrik analiza tus ingresos reales, descuenta todos tus gastos y te dice exactamente
@@ -107,7 +107,7 @@ export default function Landing() {
             Compatible con los informes de tus plataformas
           </p>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-            {["Airbnb", "Booking.com", "VRBO", "PriceLabs", "Expedia"].map((b) => (
+            {["Airbnb", "Booking.com", "VRBO", "Expedia", "Holidu", "Rentalia", "Wimdu", "TripAdvisor"].map((b) => (
               <span key={b} className="text-lg font-bold text-slate-300 transition hover:text-slate-400">
                 {b}
               </span>
@@ -126,7 +126,7 @@ export default function Landing() {
         </div>
         <div className="mt-12 grid gap-5 sm:grid-cols-3">
           {[
-            ["Sabes cuánto ingresas", "Lo ves en Airbnb o Booking, sin problema.", "M12 8v8m-4-4h8"],
+            ["Sabes cuánto ingresas", "Lo ves en tu alquiler vacacional, sin problema.", "M12 8v8m-4-4h8"],
             ["Pero no cuánto ganas", "Después de gastos reales, es un misterio.", "M12 9v4m0 4h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L14.7 3.9a2 2 0 00-3.4 0z"],
             ["Y no tienes informes", "Nada profesional que enviar al propietario.", "M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V5a2 2 0 012-2h5.6L19 8.4V18a2 2 0 01-2 2z"],
           ].map(([t, d, icon]) => (
