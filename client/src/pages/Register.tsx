@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { errorMessage } from "../api/client";
+import { api, errorMessage } from "../api/client";
 import { eur } from "../lib/format";
 import { Alert, PasswordInput } from "../components/ui";
 import { Logo } from "../components/Logo";
@@ -62,7 +62,7 @@ const PLANS: PlanCardData[] = [
 ];
 
 export default function Register() {
-  const { register } = useAuth();
+  const { register, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const preselectedPlan = params.get("plan") ?? "starter";
@@ -101,10 +101,18 @@ export default function Register() {
         companyName: form.companyName || undefined,
         plan: form.plan,
       });
+      // El trial de 14 días requiere tarjeta: se redirige al checkout de Stripe
+      // para el plan elegido antes de poder acceder al dashboard.
+      const res = await api.post<{ url?: string; simulated?: boolean }>("/billing/checkout", { plan: form.plan });
+      if (res.data.url) {
+        window.location.href = res.data.url;
+        return; // salimos a Stripe (no reactivamos el botón)
+      }
+      // Modo simulado (Stripe no configurado en local): plan activado directamente.
+      await refreshUser();
       navigate("/dashboard");
     } catch (err) {
       setError(errorMessage(err));
-    } finally {
       setLoading(false);
     }
   }

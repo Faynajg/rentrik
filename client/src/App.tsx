@@ -24,10 +24,15 @@ import PortalLogin from "./pages/portal/PortalLogin";
 import PortalDashboard from "./pages/portal/PortalDashboard";
 import PortalPropertyDetail from "./pages/portal/PortalPropertyDetail";
 
-function Protected({ children }: { children: ReactNode }) {
+// Estados de suscripción que dan acceso a la app (trial de Stripe incluido).
+const SUBSCRIBED = new Set(["trialing", "active", "past_due"]);
+
+function Protected({ children, requireSub = true }: { children: ReactNode; requireSub?: boolean }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="min-h-screen"><Spinner label="Cargando…" /></div>;
   if (!user) return <Navigate to="/login" replace />;
+  // Sin suscripción activa (ni trial) no se accede al dashboard: primero pasar por el checkout.
+  if (requireSub && !SUBSCRIBED.has(user.subscriptionStatus)) return <Navigate to="/precios" replace />;
   return <AppShell><ErrorBoundary>{children}</ErrorBoundary></AppShell>;
 }
 
@@ -75,8 +80,8 @@ export default function App() {
       <Route path="/propietarios" element={<Protected><Propietarios /></Protected>} />
       <Route path="/calculadora" element={<Protected><Calculadora /></Protected>} />
       <Route path="/propiedades/:id" element={<Protected><PropertyDetail /></Protected>} />
-      <Route path="/cuenta" element={<Protected><Account /></Protected>} />
-      <Route path="/precios" element={<Protected><Pricing /></Protected>} />
+      <Route path="/cuenta" element={<Protected requireSub={false}><Account /></Protected>} />
+      <Route path="/precios" element={<Protected requireSub={false}><Pricing /></Protected>} />
 
       {/* Portal del propietario */}
       <Route element={<PortalLayout />}>

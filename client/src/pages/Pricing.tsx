@@ -43,15 +43,37 @@ export default function Pricing({ publicView = false }: { publicView?: boolean }
     if (!publicView && user) {
       api.get<BillingStatus>("/billing/status").then((res) => setBilling(res.data)).catch(() => {});
     }
-    // Mensajes al volver de Stripe Checkout.
+    // Retorno de Stripe Checkout.
     const checkout = params.get("checkout");
     if (checkout === "success") {
-      setMessage("¡Suscripción completada! Gracias por confiar en Rentrik.");
-      refreshUser();
       params.delete("checkout");
       setParams(params, { replace: true });
+      setMessage("Activando tu suscripción…");
+      // El webhook de Stripe tarda unos segundos en activar el trial: sondeamos
+      // el estado hasta que esté activo y entonces entramos al dashboard.
+      let tries = 0;
+      const poll = async () => {
+        tries++;
+        try {
+          const res = await api.get<BillingStatus>("/billing/status");
+          if (["trialing", "active", "past_due"].includes(res.data.subscriptionStatus)) {
+            await refreshUser();
+            navigate("/dashboard");
+            return;
+          }
+        } catch {
+          /* reintenta */
+        }
+        if (tries < 12) {
+          window.setTimeout(poll, 2000);
+        } else {
+          await refreshUser();
+          setMessage("¡Suscripción recibida! Si tu plan no aparece activo, recarga en unos segundos.");
+        }
+      };
+      poll();
     } else if (checkout === "cancel") {
-      setError("Has cancelado el proceso de pago. Puedes intentarlo de nuevo cuando quieras.");
+      setError("Has cancelado el proceso de pago. Elige un plan para empezar tu prueba gratuita de 14 días.");
       params.delete("checkout");
       setParams(params, { replace: true });
     }

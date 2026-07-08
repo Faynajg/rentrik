@@ -83,7 +83,7 @@ export function welcomeEmail(name: string): { subject: string; html: string } {
     html: layout(
       `¡Hola, ${name}!`,
       `<p>Gracias por unirte a <strong>Rentrik</strong>. Ya puedes descubrir cuánto gana de verdad cada una de tus propiedades.</p>
-       <p>Tienes <strong>14 días de prueba gratuita</strong>, sin tarjeta de crédito. Para empezar:</p>
+       <p>Tienes <strong>14 días de prueba gratuita</strong>. Cancela cuando quieras. Para empezar:</p>
        <ol style="padding-left:18px">
          <li>Crea tu primera propiedad</li>
          <li>Sube el CSV de ingresos de tu OTA</li>
