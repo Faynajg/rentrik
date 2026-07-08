@@ -37,7 +37,7 @@ export function setReportCurrency(code: string) {
 }
 
 export function eur(n: number): string {
-  return formatMoney(n, activeCurrency, 2);
+  return formatMoney(n, activeCurrency);
 }
 
 export function eur0(n: number): string {

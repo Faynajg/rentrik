@@ -4,6 +4,8 @@ import { computeKpis } from "./kpi";
 import { getPlan } from "../lib/plans";
 import { monthOrCurrent, previousMonth, monthLabel } from "../lib/dates";
 import { PDFDocument, setReportCurrency } from "./pdf/theme";
+import { approxRate } from "./currency";
+import type { Expense, Reservation } from "@prisma/client";
 import { buildOwnerReport } from "./pdf/ownerReport";
 import { buildManagerReport } from "./pdf/managerReport";
 import { buildBankReport } from "./pdf/bankReport";
@@ -25,6 +27,21 @@ async function brandAndCurrency(userId: string): Promise<{ brand: string; curren
   const user = await prisma.user.findUnique({ where: { id: userId } });
   const brand = user && getPlan(user.plan).ownBranding && user.companyName ? user.companyName : "Rentrik";
   return { brand, currency: user?.currency ?? "EUR" };
+}
+
+/** Convierte reservas y gastos de una propiedad a la moneda base (para el consolidado). */
+function toBase(reservations: Reservation[], expenses: Expense[], from: string, base: string) {
+  const rate = approxRate(from || "EUR", base);
+  if (rate === 1) return { reservations, expenses };
+  return {
+    reservations: reservations.map((r) => ({
+      ...r,
+      grossRevenue: r.grossRevenue * rate,
+      platformCommission: r.platformCommission * rate,
+      netRevenue: r.netRevenue * rate,
+    })),
+    expenses: expenses.map((e) => (e.isPercent ? e : { ...e, amount: e.amount * rate })),
+  };
 }
 
 export function slug(s: string): string {
@@ -66,8 +83,8 @@ export async function renderOwnerReport(userId: string, propertyId: string, mont
       ? computeKpis(prevMonth, prevReservations, prevExpenses, prevIncidents)
       : null;
 
-  const { brand, currency } = await brandAndCurrency(userId);
-  setReportCurrency(currency);
+  const { brand } = await brandAndCurrency(userId);
+  setReportCurrency(property.currency); // el informe de una propiedad va en su moneda
 
   const buffer = await renderToBuffer((doc) =>
     buildOwnerReport(doc, { brand, propertyName: property.name, month, kpis, previous, incidents })
@@ -91,8 +108,13 @@ export async function renderManagerReport(userId: string, monthArg?: string): Pr
   });
   if (properties.length === 0) throw new ApiError(400, "No tienes propiedades para generar el informe");
 
-  const items = properties.map((p) => ({ name: p.name, kpis: computeKpis(month, p.reservations, p.expenses) }));
-  const { brand, currency } = await brandAndCurrency(userId);
+  const { brand, currency } = await brandAndCurrency(userId); // currency = moneda base
+  // El informe consolidado de la gestora va en la moneda base: se convierte
+  // cada propiedad desde su moneda antes de calcular sus KPIs.
+  const items = properties.map((p) => {
+    const c = toBase(p.reservations, p.expenses, p.currency, currency);
+    return { name: p.name, kpis: computeKpis(month, c.reservations, c.expenses) };
+  });
   setReportCurrency(currency);
 
   const buffer = await renderToBuffer((doc) => buildManagerReport(doc, { brand, month, items }));
@@ -122,8 +144,8 @@ export async function renderBankReport(userId: string, propertyId: string): Prom
     )
   );
 
-  const { brand, currency } = await brandAndCurrency(userId);
-  setReportCurrency(currency);
+  const { brand } = await brandAndCurrency(userId);
+  setReportCurrency(property.currency); // ingresos verificados en la moneda de la propiedad
 
   const buffer = await renderToBuffer((doc) =>
     buildBankReport(doc, { brand, propertyName: property.name, address: property.address, history })

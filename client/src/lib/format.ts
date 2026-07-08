@@ -9,12 +9,13 @@ export function currencySymbol(): string {
   return activeCurrency.symbol;
 }
 
-/** Formatea un importe en la moneda activa (por defecto euros). */
-export function eur(n: number, decimals = 2): string {
+/** Formatea un importe en la moneda activa; si no se indican decimales, usa los de la moneda. */
+export function eur(n: number, decimals?: number): string {
+  const d = decimals ?? activeCurrency.decimals;
   return (
     (n ?? 0).toLocaleString(activeCurrency.locale, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
+      minimumFractionDigits: d,
+      maximumFractionDigits: d,
     }) +
     " " +
     activeCurrency.symbol
