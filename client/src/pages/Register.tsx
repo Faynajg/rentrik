@@ -151,7 +151,7 @@ export default function Register() {
         </div>
 
         {/* Presentación de planes */}
-        <div id="planes" className="mt-10 grid items-start gap-5 lg:grid-cols-3">
+        <div id="planes" className="mt-10 grid items-stretch gap-5 lg:grid-cols-3">
           {PLANS.map((plan) => {
             const selected = form.plan === plan.id;
             return (

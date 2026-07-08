@@ -51,9 +51,23 @@ export function createApp() {
   // En producción, sirve el frontend compilado (una sola URL para toda la app).
   const clientDist = path.resolve(__dirname, "../../client/dist");
   if (fs.existsSync(clientDist)) {
-    app.use(express.static(clientDist));
+    app.use(
+      express.static(clientDist, {
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith("index.html")) {
+            // El shell de la SPA no se cachea: así los usuarios siempre reciben
+            // el index.html nuevo que apunta al bundle recién desplegado.
+            res.setHeader("Cache-Control", "no-cache");
+          } else if (/[\\/]assets[\\/]/.test(filePath)) {
+            // Los assets llevan hash en el nombre → cache larga inmutable.
+            res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+          }
+        },
+      })
+    );
     app.get("*", (req, res, next) => {
       if (req.path.startsWith("/api")) return next();
+      res.setHeader("Cache-Control", "no-cache");
       res.sendFile(path.join(clientDist, "index.html"));
     });
   }
