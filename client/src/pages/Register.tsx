@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { api, errorMessage } from "../api/client";
+import { api, applyAuthHeader, errorMessage, setStoredToken } from "../api/client";
 import { eur } from "../lib/format";
 import { Alert, PasswordInput } from "../components/ui";
 import { Logo } from "../components/Logo";
@@ -62,7 +62,7 @@ const PLANS: PlanCardData[] = [
 ];
 
 export default function Register() {
-  const { register, refreshUser } = useAuth();
+  const { refreshUser } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const preselectedPlan = params.get("plan") ?? "starter";
@@ -94,21 +94,34 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      await register({
+      // 1) Crear la cuenta. NO fijamos el usuario en el contexto todavía: si lo
+      //    hiciéramos, PublicOnly navegaría al dashboard antes de que podamos
+      //    redirigir a Stripe. Guardamos el token para autenticar el checkout.
+      const reg = await api.post<{ token: string }>("/auth/register", {
         name: form.name,
         email: form.email,
         password: form.password,
         companyName: form.companyName || undefined,
         plan: form.plan,
       });
-      // El trial de 14 días requiere tarjeta: se redirige al checkout de Stripe
-      // para el plan elegido antes de poder acceder al dashboard.
-      const res = await api.post<{ url?: string; simulated?: boolean }>("/billing/checkout", { plan: form.plan });
-      if (res.data.url) {
-        window.location.href = res.data.url;
-        return; // salimos a Stripe (no reactivamos el botón)
+      setStoredToken(reg.data.token);
+      applyAuthHeader(reg.data.token);
+
+      // 2) Iniciar Stripe Checkout del plan elegido y redirigir a la tarjeta
+      //    (trial de 14 días). Sin tarjeta confirmada no hay acceso al dashboard.
+      try {
+        const res = await api.post<{ url?: string }>("/billing/checkout", { plan: form.plan });
+        if (res.data.url) {
+          window.location.href = res.data.url;
+          return; // salimos a Stripe (no fijamos usuario ni reactivamos el botón)
+        }
+      } catch {
+        // Si el checkout falla, el usuario queda logueado y la guarda lo llevará
+        // a /precios para reintentar el pago.
       }
-      // Modo simulado (Stripe no configurado en local): plan activado directamente.
+
+      // 3) Sin URL (Stripe no configurado / modo simulado) o checkout fallido:
+      //    refrescamos el estado real y entramos (la guarda decide el destino).
       await refreshUser();
       navigate("/dashboard");
     } catch (err) {
