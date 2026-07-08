@@ -7,6 +7,7 @@ import { requireAuth } from "../middleware/auth";
 import { config } from "../lib/config";
 import { priceIdForPlan, stripe, stripeEnabled } from "../lib/stripe";
 import { PLANS } from "../lib/plans";
+import { sendEmail, welcomeEmail } from "../lib/email";
 
 const router = Router();
 router.use(requireAuth);
@@ -152,6 +153,8 @@ export async function billingWebhookHandler(req: Request, res: Response) {
         const userId = session.metadata?.userId;
         const plan = session.metadata?.plan;
         if (userId && session.subscription) {
+          const before = await prisma.user.findUnique({ where: { id: userId } });
+          const firstSubscription = before && !before.stripeSubscriptionId;
           const sub = await stripe.subscriptions.retrieve(session.subscription as string);
           await prisma.user.update({
             where: { id: userId },
@@ -163,6 +166,11 @@ export async function billingWebhookHandler(req: Request, res: Response) {
               trialEndsAt: trialEnd(sub),
             },
           });
+          // Email de bienvenida al activarse el trial (solo la primera suscripción).
+          if (firstSubscription && before) {
+            const welcome = welcomeEmail(before.name);
+            sendEmail({ to: before.email, subject: welcome.subject, html: welcome.html }).catch(() => {});
+          }
         }
         break;
       }

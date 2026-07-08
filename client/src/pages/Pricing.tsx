@@ -36,10 +36,11 @@ export default function Pricing({ publicView = false }: { publicView?: boolean }
   const [error, setError] = useState("");
 
   useEffect(() => {
-    api.get<{ plans: PlanInfo[] }>("/plans").then((res) => {
-      setPlans(res.data.plans);
-      setLoading(false);
-    });
+    api
+      .get<{ plans: PlanInfo[] }>("/plans")
+      .then((res) => setPlans(res.data.plans))
+      .catch(() => setError("No se pudieron cargar los planes. Recarga la página."))
+      .finally(() => setLoading(false));
     if (!publicView && user) {
       api.get<BillingStatus>("/billing/status").then((res) => setBilling(res.data)).catch(() => {});
     }
@@ -117,6 +118,10 @@ export default function Pricing({ publicView = false }: { publicView?: boolean }
     }
   }
 
+  // Solo hay "plan actual" si el usuario tiene una suscripción activa/trial;
+  // sin suscripción, todos los botones deben permitir iniciar el checkout.
+  const subscribed = ["trialing", "active", "past_due"].includes(user?.subscriptionStatus ?? "");
+
   const accents: Record<string, string> = {
     starter: "text-slate-500",
     gestor: "text-brand",
@@ -175,7 +180,7 @@ export default function Pricing({ publicView = false }: { publicView?: boolean }
       ) : (
         <div className="mt-12 grid items-start gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {plans.map((plan) => {
-            const isCurrent = user?.plan === plan.id;
+            const isCurrent = subscribed && user?.plan === plan.id;
             const highlight = plan.id === "gestor";
             return (
               <div
@@ -224,7 +229,9 @@ export default function Pricing({ publicView = false }: { publicView?: boolean }
                     ? "Procesando…"
                     : publicView || !user
                     ? "Prueba 14 días gratis"
-                    : "Elegir plan"}
+                    : subscribed
+                    ? "Cambiar a este plan"
+                    : "Empezar prueba"}
                 </button>
               </div>
             );

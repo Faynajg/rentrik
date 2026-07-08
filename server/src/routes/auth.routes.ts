@@ -8,7 +8,7 @@ import crypto from "crypto";
 import { requireAuth } from "../middleware/auth";
 import { getPlan, PLANS } from "../lib/plans";
 import { config } from "../lib/config";
-import { emailEnabled, passwordResetEmail, sendEmail, welcomeEmail } from "../lib/email";
+import { emailEnabled, passwordResetEmail, sendEmail } from "../lib/email";
 import { CURRENCIES } from "../lib/currency";
 
 const router = Router();
@@ -86,9 +86,8 @@ router.post(
       },
     });
 
-    // Email de bienvenida (no bloquea el registro si falla).
-    const welcome = welcomeEmail(user.name);
-    sendEmail({ to: user.email, subject: welcome.subject, html: welcome.html }).catch(() => {});
+    // El email de bienvenida se envía al iniciar el trial (webhook de Stripe),
+    // no en el registro, porque la prueba de 14 días arranca tras el checkout.
 
     const token = signToken({ userId: user.id });
     res.status(201).json({ token, user: publicUser(user) });

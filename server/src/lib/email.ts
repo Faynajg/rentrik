@@ -1,16 +1,19 @@
 import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { config } from "./config";
 
+const RESEND_API_KEY = process.env.RESEND_API_KEY ?? "";
 const SMTP_HOST = process.env.SMTP_HOST ?? "";
 const SMTP_PORT = Number(process.env.SMTP_PORT ?? 587);
 const SMTP_USER = process.env.SMTP_USER ?? "";
 const SMTP_PASS = process.env.SMTP_PASS ?? "";
-export const EMAIL_FROM = process.env.EMAIL_FROM ?? "Rentrik <no-reply@rentrik.com>";
+export const EMAIL_FROM = process.env.EMAIL_FROM ?? "Rentrik <no-reply@rentrik.app>";
 
-/** El envío real de emails solo está activo si hay servidor SMTP configurado. */
-export const emailEnabled = Boolean(SMTP_HOST);
+// Envío real vía Resend (preferente) o SMTP. Sin ninguno, modo dev (solo log).
+const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
+export const emailEnabled = Boolean(resend) || Boolean(SMTP_HOST);
 
-const transporter = emailEnabled
+const transporter = SMTP_HOST
   ? nodemailer.createTransport({
       host: SMTP_HOST,
       port: SMTP_PORT,
@@ -25,7 +28,7 @@ export interface Attachment {
   contentType?: string;
 }
 
-/** Envía un email. Si no hay SMTP configurado, lo registra en consola (modo desarrollo). */
+/** Envía un email vía Resend (si hay API key), SMTP, o lo registra en consola (dev). */
 export async function sendEmail(opts: {
   to: string;
   subject: string;
@@ -33,6 +36,21 @@ export async function sendEmail(opts: {
   attachments?: Attachment[];
 }): Promise<boolean> {
   try {
+    if (resend) {
+      const { error } = await resend.emails.send({
+        from: EMAIL_FROM,
+        to: opts.to,
+        subject: opts.subject,
+        html: opts.html,
+        attachments: opts.attachments?.map((a) => ({ filename: a.filename, content: a.content })),
+      });
+      if (error) {
+        console.error("Error enviando email (Resend):", error);
+        return false;
+      }
+      return true;
+    }
+
     await transporter.sendMail({
       from: EMAIL_FROM,
       to: opts.to,
@@ -89,7 +107,7 @@ export function welcomeEmail(name: string): { subject: string; html: string } {
          <li>Sube el CSV de ingresos de tu OTA</li>
          <li>Introduce tus gastos y genera tu informe</li>
        </ol>`,
-      { label: "Ir a mi panel", url: `${config.clientOrigin}/dashboard` }
+      { label: "Ir a mi dashboard", url: `${config.clientOrigin}/dashboard` }
     ),
   };
 }
