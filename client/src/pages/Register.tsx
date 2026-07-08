@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { errorMessage } from "../api/client";
 import { eur } from "../lib/format";
-import { Alert } from "../components/ui";
+import { Alert, PasswordInput } from "../components/ui";
 import { Logo } from "../components/Logo";
 import { SiteFooter } from "../components/SiteFooter";
 
@@ -204,7 +204,7 @@ export default function Register() {
               </div>
               <div>
                 <label className="label">Contraseña</label>
-                <input className="input" type="password" value={form.password} onChange={(e) => update("password", e.target.value)} required minLength={6} placeholder="Mínimo 6 caracteres" />
+                <PasswordInput value={form.password} onChange={(e) => update("password", e.target.value)} required minLength={6} placeholder="Mínimo 6 caracteres" />
               </div>
               <div>
                 <label className="label">Nombre de la empresa <span className="text-slate-400">(opcional)</span></label>

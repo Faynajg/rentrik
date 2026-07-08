@@ -1,7 +1,7 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api, errorMessage } from "../api/client";
-import { Alert } from "../components/ui";
+import { Alert, PasswordInput } from "../components/ui";
 import { AuthLayout } from "./Login";
 
 export default function ResetPassword() {
@@ -54,11 +54,11 @@ export default function ResetPassword() {
           {error && <Alert kind="error">{error}</Alert>}
           <div>
             <label className="label">Nueva contraseña</label>
-            <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="Mínimo 6 caracteres" autoFocus />
+            <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="Mínimo 6 caracteres" autoFocus />
           </div>
           <div>
             <label className="label">Repite la contraseña</label>
-            <input className="input" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+            <PasswordInput value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
           </div>
           <button className="btn-primary btn-lg w-full" disabled={loading}>
             {loading ? "Guardando…" : "Restablecer contraseña"}

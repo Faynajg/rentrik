@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useOwnerAuth } from "../../context/OwnerAuthContext";
 import { errorMessage } from "../../api/client";
 import { Logo } from "../../components/Logo";
-import { Alert } from "../../components/ui";
+import { Alert, PasswordInput } from "../../components/ui";
 
 export default function PortalLogin() {
   const { login } = useOwnerAuth();
@@ -46,7 +46,7 @@ export default function PortalLogin() {
           </div>
           <div>
             <label className="label">Contraseña</label>
-            <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
           <button className="btn-primary btn-lg w-full" disabled={loading}>
             {loading ? "Entrando…" : "Entrar"}

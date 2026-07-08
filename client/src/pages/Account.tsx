@@ -4,7 +4,7 @@ import { api, errorMessage } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { User } from "../types";
 import { CURRENCIES } from "../lib/currency";
-import { Alert } from "../components/ui";
+import { Alert, PasswordInput } from "../components/ui";
 
 export default function Account() {
   const { user, setUser } = useAuth();
@@ -245,16 +245,16 @@ function PasswordCard() {
         {error && <Alert kind="error">{error}</Alert>}
         <div>
           <label className="label">Contraseña actual</label>
-          <input className="input" type="password" value={currentPassword} onChange={(e) => setCurrent(e.target.value)} required />
+          <PasswordInput value={currentPassword} onChange={(e) => setCurrent(e.target.value)} required />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="label">Nueva contraseña</label>
-            <input className="input" type="password" value={newPassword} onChange={(e) => setNew(e.target.value)} required minLength={6} placeholder="Mínimo 6 caracteres" />
+            <PasswordInput value={newPassword} onChange={(e) => setNew(e.target.value)} required minLength={6} placeholder="Mínimo 6 caracteres" />
           </div>
           <div>
             <label className="label">Repite la nueva contraseña</label>
-            <input className="input" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
+            <PasswordInput value={confirm} onChange={(e) => setConfirm(e.target.value)} required />
           </div>
         </div>
       </div>

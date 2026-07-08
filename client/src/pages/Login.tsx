@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { errorMessage } from "../api/client";
 import { Logo } from "../components/Logo";
-import { Alert } from "../components/ui";
+import { Alert, PasswordInput } from "../components/ui";
 
 export default function Login() {
   const { login } = useAuth();
@@ -42,7 +42,7 @@ export default function Login() {
               ¿Olvidaste tu contraseña?
             </Link>
           </div>
-          <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required />
         </div>
         <button className="btn-primary btn-lg w-full" disabled={loading}>
           {loading ? "Entrando…" : "Iniciar sesión"}

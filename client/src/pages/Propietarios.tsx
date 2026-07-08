@@ -2,7 +2,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import { api, errorMessage } from "../api/client";
 import { Owner, OwnerSummary, ReportLog } from "../types";
 import { monthLabel } from "../lib/format";
-import { Alert, EmptyState, Modal, Spinner } from "../components/ui";
+import { Alert, EmptyState, Modal, PasswordInput, Spinner } from "../components/ui";
 
 interface OwnerDetail {
   owner: Owner;
@@ -422,7 +422,7 @@ function PortalAccessCard({ owner, onChanged }: { owner: Owner; onChanged: () =>
           <div className="flex flex-wrap items-end gap-2">
             <div className="min-w-[180px] flex-1">
               <label className="label">{owner.portalEnabled ? "Nueva contraseña" : "Contraseña de acceso"}</label>
-              <input className="input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="Mínimo 6 caracteres" />
+              <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} placeholder="Mínimo 6 caracteres" />
             </div>
             <button className="btn-primary" disabled={saving}>
               {saving ? "Guardando…" : owner.portalEnabled ? "Actualizar contraseña" : "Habilitar acceso"}
