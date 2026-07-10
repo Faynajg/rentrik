@@ -167,13 +167,19 @@ export default function Pricing({ publicView = false }: { publicView?: boolean }
               </p>
             </div>
           </div>
-          {billing.hasActiveSubscription && billing.stripeEnabled && (
-            <button onClick={openPortal} disabled={portalLoading} className="btn-ghost">
-              {portalLoading ? "Abriendo…" : "Gestionar suscripción"}
-            </button>
-          )}
         </div>
       )}
+
+      {/* Gestionar suscripción vía el portal de clientes de Stripe. Visible con
+          prueba (trialing), activa o past_due — debajo del card de estado. */}
+      {!publicView && billing && billing.stripeEnabled &&
+        ["trialing", "active", "past_due"].includes(billing.subscriptionStatus) && (
+          <div className="mx-auto mt-3 flex max-w-3xl justify-center sm:justify-end">
+            <button onClick={openPortal} disabled={portalLoading} className="btn-primary btn-sm">
+              {portalLoading ? "Abriendo…" : "Gestionar suscripción"}
+            </button>
+          </div>
+        )}
 
       {loading ? (
         <Spinner />
