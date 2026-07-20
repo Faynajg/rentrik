@@ -2,9 +2,11 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { ApiError, asyncHandler } from "../lib/errors";
 import { requireAuth } from "../middleware/auth";
+import { requireSubscription } from "../middleware/subscription";
 
 const router = Router();
 router.use(requireAuth);
+router.use(requireSubscription);
 
 const GUESTS = ["Lucía", "Marco", "Sophie", "Hans", "Marta", "Tom", "Elena", "Pablo", "Nadia", "Chen", "Ana", "Liam"];
 

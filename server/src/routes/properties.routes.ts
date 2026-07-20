@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { ApiError, asyncHandler } from "../lib/errors";
 import { requireAuth } from "../middleware/auth";
+import { requireSubscription } from "../middleware/subscription";
 import { computeKpis } from "../services/kpi";
 import { getPlan } from "../lib/plans";
 import { currentMonth, monthOrCurrent } from "../lib/dates";
@@ -12,6 +13,7 @@ const validCurrency = (code?: string) => (code && CURRENCIES[code] ? code : "EUR
 
 const router = Router();
 router.use(requireAuth);
+router.use(requireSubscription);
 
 /** Carga una propiedad verificando que pertenece al usuario autenticado. */
 async function ownedProperty(userId: string, propertyId: string) {

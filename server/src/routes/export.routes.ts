@@ -2,11 +2,13 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { ApiError, asyncHandler } from "../lib/errors";
 import { requireAuth } from "../middleware/auth";
+import { requireSubscription } from "../middleware/subscription";
 import { computeKpis } from "../services/kpi";
 import { monthOrCurrent } from "../lib/dates";
 
 const router = Router();
 router.use(requireAuth);
+router.use(requireSubscription);
 
 /** Escapa un campo para CSV (delimitador ';', compatible con Excel en español). */
 function cell(value: string | number | null | undefined): string {

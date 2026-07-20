@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Logo } from "../components/Logo";
 
@@ -31,6 +32,18 @@ const steps = [
 ];
 
 export default function Landing() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Cerrar el menú móvil con Escape.
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setMenuOpen(false);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [menuOpen]);
+
   return (
     <div className="min-h-screen bg-white text-slate-700">
       {/* Nav */}
@@ -49,8 +62,40 @@ export default function Landing() {
             <Link to="/registro" className="btn-primary btn-sm sm:!px-4 sm:!py-2">
               Prueba 14 días gratis
             </Link>
+            {/* Menú móvil: sin él, en el móvil no había forma de iniciar sesión. */}
+            <button
+              type="button"
+              aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+              aria-expanded={menuOpen}
+              aria-controls="menu-movil"
+              onClick={() => setMenuOpen((o) => !o)}
+              className="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 md:hidden"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                {menuOpen ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+              </svg>
+            </button>
           </div>
         </div>
+
+        {menuOpen && (
+          <nav id="menu-movil" className="border-t border-slate-100 bg-white md:hidden">
+            <div className="section flex flex-col py-2">
+              <a href="#producto" onClick={() => setMenuOpen(false)} className="rounded-lg px-1 py-3 text-sm font-medium text-slate-600 transition hover:text-brand">
+                Producto
+              </a>
+              <a href="#como-funciona" onClick={() => setMenuOpen(false)} className="rounded-lg px-1 py-3 text-sm font-medium text-slate-600 transition hover:text-brand">
+                Cómo funciona
+              </a>
+              <Link to="/precios-publico" onClick={() => setMenuOpen(false)} className="rounded-lg px-1 py-3 text-sm font-medium text-slate-600 transition hover:text-brand">
+                Precios
+              </Link>
+              <Link to="/login" onClick={() => setMenuOpen(false)} className="rounded-lg border-t border-slate-100 px-1 py-3 text-sm font-semibold text-brand">
+                Iniciar sesión
+              </Link>
+            </div>
+          </nav>
+        )}
       </header>
 
       {/* Hero */}

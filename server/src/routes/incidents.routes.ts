@@ -3,10 +3,12 @@ import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { ApiError, asyncHandler } from "../lib/errors";
 import { requireAuth } from "../middleware/auth";
+import { requireSubscription } from "../middleware/subscription";
 import { ownedProperty } from "./properties.routes";
 
 const router = Router();
 router.use(requireAuth);
+router.use(requireSubscription);
 
 const TYPES = ["reparacion", "queja", "problema", "otro"] as const;
 

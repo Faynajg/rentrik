@@ -3,11 +3,13 @@ import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { ApiError, asyncHandler } from "../lib/errors";
 import { requireAuth } from "../middleware/auth";
+import { requireSubscription } from "../middleware/subscription";
 import { ownedProperty } from "./properties.routes";
 import { monthOrCurrent } from "../lib/dates";
 
 const router = Router();
 router.use(requireAuth);
+router.use(requireSubscription);
 
 const CATEGORIES = ["fijo", "variable", "plataforma", "gestion"] as const;
 

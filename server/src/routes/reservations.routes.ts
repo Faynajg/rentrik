@@ -4,11 +4,13 @@ import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { ApiError, asyncHandler } from "../lib/errors";
 import { requireAuth } from "../middleware/auth";
+import { requireSubscription } from "../middleware/subscription";
 import { ownedProperty } from "./properties.routes";
 import { parseReservationsCsv } from "../services/csvParser";
 
 const router = Router();
 router.use(requireAuth);
+router.use(requireSubscription);
 
 // Archivo en memoria (hasta 5 MB), sólo CSV/Excel exportado como texto.
 const upload = multer({

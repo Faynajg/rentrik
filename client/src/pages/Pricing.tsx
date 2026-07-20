@@ -140,6 +140,9 @@ export default function Pricing({ publicView = false }: { publicView?: boolean }
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
           14 días gratis · cancela cuando quieras
         </div>
+        <p className="mt-3 text-xs text-slate-400">
+          Precios mensuales por cuenta, sin impuestos incluidos. Se añadirá el IVA que corresponda según tu país y condición fiscal.
+        </p>
       </div>
 
       {message && <div className="mx-auto mt-6 max-w-md"><Alert kind="success">{message}</Alert></div>}
@@ -206,6 +209,7 @@ export default function Pricing({ publicView = false }: { publicView?: boolean }
                 <div className="mt-3 flex items-baseline gap-1">
                   <span className="text-4xl font-extrabold tracking-tight text-ink">{eur(plan.price, 0)}</span>
                   <span className="text-sm text-slate-400">/mes</span>
+                  <span className="text-xs text-slate-400">+ IVA</span>
                 </div>
                 <p className="mt-1.5 text-sm font-medium text-slate-500">
                   {plan.maxProperties === null ? "Propiedades ilimitadas" : `Hasta ${plan.maxProperties} propiedades`}

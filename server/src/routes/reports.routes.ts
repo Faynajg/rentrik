@@ -1,10 +1,12 @@
 import { Router } from "express";
 import { asyncHandler } from "../lib/errors";
 import { requireAuth } from "../middleware/auth";
+import { requireSubscription } from "../middleware/subscription";
 import { renderBankReport, renderManagerReport, renderOwnerReport } from "../services/reportBuilder";
 
 const router = Router();
 router.use(requireAuth);
+router.use(requireSubscription);
 
 function sendPdf(res: import("express").Response, filename: string, buffer: Buffer) {
   res.setHeader("Content-Type", "application/pdf");

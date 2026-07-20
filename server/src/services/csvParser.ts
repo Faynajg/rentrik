@@ -37,6 +37,9 @@ const FIELD_KEYWORDS: Record<string, string[]> = {
     "fecha de entrada", "fecha entrada", "check-in", "checkin", "check in",
     "llegada", "fecha llegada", "arrival", "arrival date", "start date",
     "fecha inicio", "fecha de inicio", "inicio de estancia", "stay start",
+    // "entrada" suelto: cabecera habitual en los exports españoles (Booking).
+    // Simétrico con "salida", que checkOut ya aceptaba.
+    "entrada",
   ],
   checkOut: [
     "fecha de salida", "fecha salida", "check-out", "checkout", "check out",
@@ -54,6 +57,8 @@ const FIELD_KEYWORDS: Record<string, string[]> = {
     "booking amount", "booking value", "reservation total", "total booking",
     "total price", "importe total", "total payout", "precio total",
     "importe alquiler", "rental amount", "importe", "amount", "ingresos", "total",
+    // "precio" suelto: cabecera habitual en los exports españoles (Booking).
+    "precio",
   ],
   netRevenue: [
     "ingresos netos", "importe neto", "net earnings", "net revenue", "net amount",
@@ -83,6 +88,15 @@ const FIELD_KEYWORDS: Record<string, string[]> = {
  * `used` contiene cabeceras ya asignadas a otro campo, que se excluyen para
  * evitar colisiones (p. ej. que "plataforma" robe "Comisión de plataforma").
  */
+/**
+ * Cabeceras de tarifa unitaria: NO son el importe de la reserva. Se excluyen de
+ * la búsqueda por inclusión en los campos de dinero total, para que "Precio por
+ * noche" no acabe importándose como ingreso bruto (sería un dato financiero
+ * incorrecto y silencioso). Una coincidencia exacta sigue mandando.
+ */
+const PER_UNIT_HINTS = ["por noche", "per night", "nightly", "por persona", "per person", "por dia", "per day"];
+const TOTAL_MONEY_FIELDS = new Set(["grossRevenue", "netRevenue"]);
+
 function matchColumn(headers: string[], field: string, used?: Set<string>): string | null {
   const keywords = FIELD_KEYWORDS[field];
   const normalized = headers.filter((h) => !used?.has(h)).map((h) => ({ raw: h, n: norm(h) }));
@@ -91,9 +105,12 @@ function matchColumn(headers: string[], field: string, used?: Set<string>): stri
     const exact = normalized.find((h) => h.n === kw);
     if (exact) return exact.raw;
   }
-  // 2) coincidencia por inclusión
+  // 2) coincidencia por inclusión (sin tarifas unitarias en campos de total)
+  const candidates = TOTAL_MONEY_FIELDS.has(field)
+    ? normalized.filter((h) => !PER_UNIT_HINTS.some((hint) => h.n.includes(hint)))
+    : normalized;
   for (const kw of keywords) {
-    const partial = normalized.find((h) => h.n.includes(kw));
+    const partial = candidates.find((h) => h.n.includes(kw));
     if (partial) return partial.raw;
   }
   return null;

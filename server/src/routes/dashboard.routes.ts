@@ -2,6 +2,7 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma";
 import { asyncHandler } from "../lib/errors";
 import { requireAuth } from "../middleware/auth";
+import { requireSubscription } from "../middleware/subscription";
 import { computeKpis, PropertyKpis } from "../services/kpi";
 import { monthOrCurrent } from "../lib/dates";
 import { approxRate } from "../services/currency";
@@ -9,6 +10,7 @@ import type { Expense, Property, Reservation } from "@prisma/client";
 
 const router = Router();
 router.use(requireAuth);
+router.use(requireSubscription);
 
 type PropertyWithData = Property & { reservations: Reservation[]; expenses: Expense[] };
 
