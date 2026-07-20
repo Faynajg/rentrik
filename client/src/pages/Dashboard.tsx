@@ -1,16 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, downloadPdf, errorMessage } from "../api/client";
-import { DashboardData } from "../types";
+import { DashboardData, Property } from "../types";
 import { eur, monthLabel, num, pct } from "../lib/format";
 import { KpiCard, Variation } from "../components/KpiCard";
 import { AddPropertyModal } from "../components/AddPropertyModal";
+import { EditPropertyModal } from "../components/EditPropertyModal";
+import { PropertyCardMenu } from "../components/PropertyCardMenu";
 import { OnboardingChecklist } from "../components/OnboardingChecklist";
 import { PortfolioHealth } from "../components/PortfolioHealth";
 import { PortfolioTriage, PortfolioInsights, PlatformBreakdown, OccupancyRanking } from "../components/PortfolioAnalytics";
 import { BAND_BADGE, BAND_LABEL, marginBand, platformColor } from "../lib/health";
 import { useAuth } from "../context/AuthContext";
-import { Alert, Spinner } from "../components/ui";
+import { Alert, Modal, Spinner } from "../components/ui";
 import {
   ExpensePie,
   OccupancyChart,
@@ -35,6 +37,44 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("net");
   const [demoLoading, setDemoLoading] = useState(false);
+  // Acciones del menú (⋯) de cada tarjeta de propiedad.
+  const [editing, setEditing] = useState<Property | null>(null);
+  const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
+  const [actionBusy, setActionBusy] = useState(false);
+  const [actionError, setActionError] = useState("");
+
+  /**
+   * Las tarjetas traen `PropertyWithKpis` (sin divisa ni notas), así que se pide
+   * la propiedad completa antes de abrir el editor: si no, el PATCH del modal
+   * mandaría la divisa por defecto y se la cambiaría al usuario.
+   */
+  async function startEdit(id: string) {
+    setActionError("");
+    setActionBusy(true);
+    try {
+      const res = await api.get<{ property: Property }>(`/properties/${id}`);
+      setEditing(res.data.property);
+    } catch (err) {
+      setActionError(errorMessage(err));
+    } finally {
+      setActionBusy(false);
+    }
+  }
+
+  async function confirmDelete() {
+    if (!deleting) return;
+    setActionError("");
+    setActionBusy(true);
+    try {
+      await api.delete(`/properties/${deleting.id}`);
+      setDeleting(null);
+      await load();
+    } catch (err) {
+      setActionError(errorMessage(err));
+    } finally {
+      setActionBusy(false);
+    }
+  }
 
   async function loadDemo() {
     setDemoLoading(true);
@@ -148,6 +188,8 @@ export default function Dashboard() {
       </div>
 
       {error && <div className="mt-4"><Alert kind="error">{error}</Alert></div>}
+      {/* Errores del menú (⋯); dentro del modal de borrado ya se muestra allí. */}
+      {actionError && !deleting && <div className="mt-4"><Alert kind="error">{actionError}</Alert></div>}
 
       {/* Banner de modo demo */}
       {user?.demoMode && (
@@ -267,9 +309,15 @@ export default function Dashboard() {
                         </div>
                       )}
                     </div>
-                    <span className={`shrink-0 rounded-full px-2 py-1 text-2xs font-bold ${BAND_BADGE[band]}`}>
-                      {BAND_LABEL[band]} · {pct(p.kpis.profitMargin)}
-                    </span>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <span className={`rounded-full px-2 py-1 text-2xs font-bold ${BAND_BADGE[band]}`}>
+                        {BAND_LABEL[band]} · {pct(p.kpis.profitMargin)}
+                      </span>
+                      <PropertyCardMenu
+                        onEdit={() => startEdit(p.id)}
+                        onDelete={() => setDeleting({ id: p.id, name: p.name })}
+                      />
+                    </div>
                   </div>
 
                   {band === "red" && p.kpis.grossRevenue > 0 && (
@@ -306,6 +354,60 @@ export default function Dashboard() {
       )}
 
       <AddPropertyModal open={showAdd} onClose={() => setShowAdd(false)} onCreated={load} />
+
+      {/* Editar: se monta solo con la propiedad ya cargada (el modal inicializa
+          su estado desde las props, así que necesita datos frescos y su key). */}
+      {editing && (
+        <EditPropertyModal
+          key={editing.id}
+          open
+          property={editing}
+          onClose={() => setEditing(null)}
+          onSaved={load}
+        />
+      )}
+
+      <Modal
+        open={!!deleting}
+        onClose={() => {
+          if (!actionBusy) {
+            setDeleting(null);
+            setActionError("");
+          }
+        }}
+        title="Eliminar propiedad"
+      >
+        <p className="text-sm leading-relaxed text-slate-600">
+          ¿Estás seguro de que quieres eliminar esta propiedad? Esta acción no se puede deshacer.
+        </p>
+        {deleting && <p className="mt-2 text-sm font-semibold text-ink">{deleting.name}</p>}
+        {actionError && (
+          <div className="mt-4">
+            <Alert kind="error">{actionError}</Alert>
+          </div>
+        )}
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => {
+              setDeleting(null);
+              setActionError("");
+            }}
+            disabled={actionBusy}
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={confirmDelete}
+            disabled={actionBusy}
+            className="btn bg-negative text-white hover:opacity-90 disabled:opacity-60"
+          >
+            {actionBusy ? "Eliminando…" : "Eliminar"}
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }
