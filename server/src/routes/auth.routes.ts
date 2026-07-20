@@ -8,6 +8,7 @@ import crypto from "crypto";
 import { requireAuth } from "../middleware/auth";
 import { getPlan, PLANS } from "../lib/plans";
 import { config } from "../lib/config";
+import { stripe } from "../lib/stripe";
 import { emailEnabled, passwordResetEmail, sendEmail } from "../lib/email";
 import { CURRENCIES } from "../lib/currency";
 
@@ -147,6 +148,40 @@ router.patch(
 
     const user = await prisma.user.update({ where: { id: req.userId }, data: patch });
     res.json({ user: publicUser(user) });
+  })
+);
+
+// DELETE /api/auth/me  (borrado de cuenta — derecho de supresión, RGPD)
+//
+// Cancela la suscripción en Stripe y borra al usuario. Todo lo suyo
+// (propiedades, reservas, gastos, incidencias, propietarios…) cae por las
+// reglas onDelete: Cascade del esquema.
+router.delete(
+  "/me",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) throw new ApiError(404, "Usuario no encontrado");
+
+    // Primero Stripe: si el cobro sigue vivo y borrásemos la cuenta, el cliente
+    // seguiría pagando sin poder entrar. Ante un fallo, se aborta el borrado.
+    if (stripe && user.stripeSubscriptionId) {
+      try {
+        await stripe.subscriptions.cancel(user.stripeSubscriptionId);
+      } catch (err) {
+        const code = (err as { code?: string }).code;
+        // Si ya no existe en Stripe, no hay nada que cancelar: se continúa.
+        if (code !== "resource_missing") {
+          throw new ApiError(
+            502,
+            "No hemos podido cancelar tu suscripción, así que no hemos borrado la cuenta para no seguir cobrándote. Inténtalo de nuevo en unos minutos."
+          );
+        }
+      }
+    }
+
+    await prisma.user.delete({ where: { id: user.id } });
+    res.json({ ok: true });
   })
 );
 

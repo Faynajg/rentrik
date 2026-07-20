@@ -4,7 +4,7 @@ import { api, errorMessage } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { User } from "../types";
 import { CURRENCIES } from "../lib/currency";
-import { Alert, PasswordInput } from "../components/ui";
+import { Alert, Modal, PasswordInput } from "../components/ui";
 
 export default function Account() {
   const { user, setUser } = useAuth();
@@ -23,6 +23,7 @@ export default function Account() {
         <CurrencyCard user={user} onSaved={setUser} />
         <PasswordCard />
         <PlanCard planName={user.planInfo.name} />
+        <DeleteAccountCard />
       </div>
     </div>
   );
@@ -262,6 +263,80 @@ function PasswordCard() {
         <button className="btn-primary" disabled={saving}>{saving ? "Guardando…" : "Cambiar contraseña"}</button>
       </div>
     </form>
+  );
+}
+
+/**
+ * Borrado de cuenta (derecho de supresión, RGPD). El servidor cancela la
+ * suscripción en Stripe antes de borrar; si eso falla, no borra nada y avisa.
+ */
+function DeleteAccountCard() {
+  const { logout } = useAuth();
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
+
+  async function remove() {
+    setError("");
+    setDeleting(true);
+    try {
+      await api.delete("/auth/me");
+      // La cuenta ya no existe: cerrar sesión y volver a la portada.
+      logout();
+      window.location.href = "/";
+    } catch (err) {
+      setError(errorMessage(err));
+      setDeleting(false);
+    }
+  }
+
+  return (
+    <div className="card border-negative/25 p-6">
+      <h2 className="text-lg font-semibold text-ink">Eliminar mi cuenta</h2>
+      <p className="mt-1 text-sm text-slate-500">
+        Se cancelará tu suscripción y se borrarán tus propiedades, reservas, gastos e informes. No podrás recuperarlos.
+      </p>
+      <button
+        type="button"
+        onClick={() => {
+          setError("");
+          setConfirming(true);
+        }}
+        className="btn mt-4 bg-negative text-white hover:opacity-90"
+      >
+        Eliminar mi cuenta
+      </button>
+
+      <Modal
+        open={confirming}
+        onClose={() => {
+          if (!deleting) setConfirming(false);
+        }}
+        title="Eliminar mi cuenta"
+      >
+        <p className="text-sm leading-relaxed text-slate-600">
+          ¿Estás seguro? Esta acción eliminará todos tus datos y no se puede deshacer.
+        </p>
+        {error && (
+          <div className="mt-4">
+            <Alert kind="error">{error}</Alert>
+          </div>
+        )}
+        <div className="mt-6 flex justify-end gap-2">
+          <button type="button" className="btn-ghost" onClick={() => setConfirming(false)} disabled={deleting}>
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={remove}
+            disabled={deleting}
+            className="btn bg-negative text-white hover:opacity-90 disabled:opacity-60"
+          >
+            {deleting ? "Eliminando…" : "Eliminar cuenta"}
+          </button>
+        </div>
+      </Modal>
+    </div>
   );
 }
 

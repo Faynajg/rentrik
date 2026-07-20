@@ -324,7 +324,8 @@ function DashboardMockup() {
           {[
             ["Ingresos", "5.378 €", "text-brand"],
             ["Gastos", "4.556 €", "text-negative"],
-            ["Beneficio neto", "821 €", "text-positive"],
+            // 5.378 − 4.556 = 822. Debe cuadrar: el visitante hace la resta.
+            ["Beneficio neto", "822 €", "text-positive"],
             ["Ocupación", "62,4 %", "text-ink"],
           ].map(([l, v, c]) => (
             <div key={l} className="rounded-xl border border-slate-100 bg-white p-3 shadow-card">
