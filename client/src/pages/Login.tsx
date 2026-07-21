@@ -8,8 +8,8 @@ import { Alert, PasswordInput } from "../components/ui";
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("demo@rentrik.com");
-  const [password, setPassword] = useState("demo1234");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -54,9 +54,6 @@ export default function Login() {
           Prueba 14 días gratis
         </Link>
       </p>
-      <div className="mt-5 rounded-xl border border-slate-100 bg-canvas px-4 py-3 text-center text-xs text-slate-400">
-        Cuenta de demostración · <span className="font-medium text-slate-500">demo@rentrik.com</span> / demo1234
-      </div>
     </AuthLayout>
   );
 }
