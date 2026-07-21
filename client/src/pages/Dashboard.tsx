@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, downloadPdf, errorMessage } from "../api/client";
 import { DashboardData, Property } from "../types";
@@ -28,7 +28,8 @@ type SortKey = "net" | "margin" | "occ" | "name";
 
 export default function Dashboard() {
   const { user, refreshUser, setUser } = useAuth();
-  const [guideDismissed, setGuideDismissed] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const guideAutoOpened = useRef(false);
   const [data, setData] = useState<DashboardData | null>(null);
   const [month, setMonth] = useState<string>(currentMonth());
   const [platform, setPlatform] = useState("");
@@ -78,19 +79,27 @@ export default function Dashboard() {
     }
   }
 
-  // Guía de bienvenida: se muestra la primera vez (hasSeenOnboarding=false).
-  const showGuide = Boolean(user && !user.hasSeenOnboarding && !guideDismissed);
+  // Guía de bienvenida: se abre sola la primera vez que carga un usuario que
+  // aún no la ha completado. El botón "Guía de inicio" del encabezado permite
+  // reabrirla siempre. Solo se marca vista al COMPLETARLA (paso 4 / demo);
+  // saltarla la cierra pero deja el botón para volver.
+  useEffect(() => {
+    if (user && !user.hasSeenOnboarding && !guideAutoOpened.current) {
+      guideAutoOpened.current = true;
+      setGuideOpen(true);
+    }
+  }, [user]);
 
-  /** Marca la guía como vista en la BD y en el estado local (no reaparece). */
-  async function markGuideSeen() {
-    setGuideDismissed(true);
+  /** Marca la guía como completada en la BD y en el estado local, y la cierra. */
+  async function completeGuide() {
+    setGuideOpen(false);
     if (!user || user.hasSeenOnboarding) return;
     setUser({ ...user, hasSeenOnboarding: true });
     try {
       await api.patch("/auth/me", { hasSeenOnboarding: true });
     } catch {
-      // Si el PATCH falla, la guía ya está oculta en esta sesión; el peor caso
-      // es que reaparezca en la siguiente visita. No merece bloquear al usuario.
+      // Si el PATCH falla, la guía ya está cerrada; el peor caso es que se
+      // vuelva a abrir sola en la siguiente visita. No bloquea al usuario.
     }
   }
 
@@ -199,6 +208,9 @@ export default function Dashboard() {
               {downloading ? "Generando…" : "PDF gestora"}
             </button>
           )}
+          <button onClick={() => setGuideOpen(true)} className="btn-ghost" title="Volver a la guía de inicio">
+            📋 Guía de inicio
+          </button>
           <button onClick={() => setShowAdd(true)} className="btn-primary">
             + Propiedad
           </button>
@@ -371,17 +383,19 @@ export default function Dashboard() {
         )
       )}
 
-      {showGuide && (
+      {guideOpen && (
         <OnboardingGuide
           onCreateProperty={() => {
-            void markGuideSeen();
+            // Paso 1: no marca vista (solo se marca al completar); cierra y abre crear.
+            setGuideOpen(false);
             setShowAdd(true);
           }}
           onLoadDemo={() => {
-            void markGuideSeen();
+            void completeGuide();
             void loadDemo();
           }}
-          onFinish={() => void markGuideSeen()}
+          onComplete={() => void completeGuide()}
+          onSkip={() => setGuideOpen(false)}
         />
       )}
 

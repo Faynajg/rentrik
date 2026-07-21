@@ -58,14 +58,17 @@ const STEPS: Step[] = [
 export function OnboardingGuide({
   onCreateProperty,
   onLoadDemo,
-  onFinish,
+  onComplete,
+  onSkip,
 }: {
-  /** Paso 1: terminar la guía y abrir el modal de crear propiedad. */
+  /** Paso 1: cerrar la guía y abrir el modal de crear propiedad. */
   onCreateProperty: () => void;
-  /** Último paso: cargar datos de ejemplo. */
+  /** Último paso, "Ver demo": marca vista, cierra y carga datos de ejemplo. */
   onLoadDemo: () => void;
-  /** Saltar guía o terminar sin acción: solo marca vista y cierra. */
-  onFinish: () => void;
+  /** Último paso, "Ver mi dashboard": marca vista y cierra (guía completada). */
+  onComplete: () => void;
+  /** Saltar guía / X / Escape: cierra SIN marcar vista (se puede reabrir). */
+  onSkip: () => void;
 }) {
   const [i, setI] = useState(0);
   // Dirección de la animación: 1 avanzar, -1 retroceder.
@@ -96,7 +99,7 @@ export function OnboardingGuide({
     function onKey(e: KeyboardEvent) {
       if (e.key === "ArrowRight") next();
       else if (e.key === "ArrowLeft") prev();
-      else if (e.key === "Escape") onFinish();
+      else if (e.key === "Escape") onSkip();
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -106,20 +109,24 @@ export function OnboardingGuide({
   /** Acción principal del paso actual. */
   function primaryAction() {
     if (isFirst) onCreateProperty();
-    else if (isLast) onFinish();
+    else if (isLast) onComplete();
     else next();
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/50 p-4 backdrop-blur-sm">
       <div className="card relative my-auto w-full max-w-lg overflow-hidden shadow-elevated">
-        {/* Saltar guía (arriba a la derecha) */}
+        {/* Saltar guía (arriba a la derecha) — cierra sin marcar vista. */}
         <button
           type="button"
-          onClick={onFinish}
-          className="absolute right-4 top-4 z-10 rounded-lg px-2.5 py-1 text-xs font-medium text-white/80 transition hover:bg-white/10 hover:text-white"
+          onClick={onSkip}
+          aria-label="Saltar guía"
+          className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium text-white/80 transition hover:bg-white/10 hover:text-white"
         >
           Saltar guía
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
         </button>
 
         {/* Cabecera con degradado de marca + ilustración */}
