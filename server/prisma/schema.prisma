@@ -27,6 +27,7 @@ model User {
   autoSendReports Boolean @default(false)
   autoSendDay     Int     @default(2) // día del mes en que se envían (informe del mes anterior)
   demoMode        Boolean @default(false) // el usuario está viendo datos de ejemplo
+  hasSeenOnboarding Boolean @default(false) // ya vio la guía de bienvenida del dashboard
 
   // Facturación (Stripe)
   subscriptionStatus   String    @default("trialing") // trialing | active | past_due | canceled | none

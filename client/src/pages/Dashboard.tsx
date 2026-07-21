@@ -8,6 +8,7 @@ import { AddPropertyModal } from "../components/AddPropertyModal";
 import { EditPropertyModal } from "../components/EditPropertyModal";
 import { PropertyCardMenu } from "../components/PropertyCardMenu";
 import { OnboardingChecklist } from "../components/OnboardingChecklist";
+import { OnboardingGuide } from "../components/OnboardingGuide";
 import { PortfolioHealth } from "../components/PortfolioHealth";
 import { PortfolioTriage, PortfolioInsights, PlatformBreakdown, OccupancyRanking } from "../components/PortfolioAnalytics";
 import { BAND_BADGE, BAND_LABEL, marginBand, platformColor } from "../lib/health";
@@ -26,7 +27,8 @@ const PLATFORMS = ["", "Airbnb", "Booking", "VRBO"];
 type SortKey = "net" | "margin" | "occ" | "name";
 
 export default function Dashboard() {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, setUser } = useAuth();
+  const [guideDismissed, setGuideDismissed] = useState(false);
   const [data, setData] = useState<DashboardData | null>(null);
   const [month, setMonth] = useState<string>(currentMonth());
   const [platform, setPlatform] = useState("");
@@ -73,6 +75,22 @@ export default function Dashboard() {
       setActionError(errorMessage(err));
     } finally {
       setActionBusy(false);
+    }
+  }
+
+  // Guía de bienvenida: se muestra la primera vez (hasSeenOnboarding=false).
+  const showGuide = Boolean(user && !user.hasSeenOnboarding && !guideDismissed);
+
+  /** Marca la guía como vista en la BD y en el estado local (no reaparece). */
+  async function markGuideSeen() {
+    setGuideDismissed(true);
+    if (!user || user.hasSeenOnboarding) return;
+    setUser({ ...user, hasSeenOnboarding: true });
+    try {
+      await api.patch("/auth/me", { hasSeenOnboarding: true });
+    } catch {
+      // Si el PATCH falla, la guía ya está oculta en esta sesión; el peor caso
+      // es que reaparezca en la siguiente visita. No merece bloquear al usuario.
     }
   }
 
@@ -351,6 +369,20 @@ export default function Dashboard() {
             )}
           </>
         )
+      )}
+
+      {showGuide && (
+        <OnboardingGuide
+          onCreateProperty={() => {
+            void markGuideSeen();
+            setShowAdd(true);
+          }}
+          onLoadDemo={() => {
+            void markGuideSeen();
+            void loadDemo();
+          }}
+          onFinish={() => void markGuideSeen()}
+        />
       )}
 
       <AddPropertyModal open={showAdd} onClose={() => setShowAdd(false)} onCreated={load} />

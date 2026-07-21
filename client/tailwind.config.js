@@ -79,11 +79,21 @@ export default {
           "0%,100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-8px)" },
         },
+        fadeInRight: {
+          "0%": { opacity: "0", transform: "translateX(16px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        fadeInLeft: {
+          "0%": { opacity: "0", transform: "translateX(-16px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
       },
       animation: {
         fadeIn: "fadeIn 0.4s ease both",
         fadeUp: "fadeUp 0.6s cubic-bezier(0.22,1,0.36,1) both",
         floaty: "floaty 5s ease-in-out infinite",
+        fadeInRight: "fadeInRight 0.26s cubic-bezier(0.22,1,0.36,1) both",
+        fadeInLeft: "fadeInLeft 0.26s cubic-bezier(0.22,1,0.36,1) both",
       },
     },
   },

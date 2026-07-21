@@ -45,6 +45,7 @@ function publicUser(u: {
   subscriptionStatus: string;
   trialEndsAt: Date | null;
   demoMode?: boolean;
+  hasSeenOnboarding?: boolean;
 }) {
   return {
     id: u.id,
@@ -61,6 +62,7 @@ function publicUser(u: {
     trialEndsAt: u.trialEndsAt,
     trialDaysLeft: trialDaysLeft(u.trialEndsAt),
     demoMode: u.demoMode ?? false,
+    hasSeenOnboarding: u.hasSeenOnboarding ?? false,
   };
 }
 
@@ -135,6 +137,7 @@ router.patch(
       ivaRate: z.number().min(0).max(100).optional(),
       autoSendReports: z.boolean().optional(),
       autoSendDay: z.number().int().min(1).max(28).optional(),
+      hasSeenOnboarding: z.boolean().optional(),
     });
     const data = schema.parse(req.body);
     const patch: Record<string, string | number | boolean | null> = {};
@@ -145,6 +148,7 @@ router.patch(
     if (data.ivaRate !== undefined) patch.ivaRate = data.ivaRate;
     if (data.autoSendReports !== undefined) patch.autoSendReports = data.autoSendReports;
     if (data.autoSendDay !== undefined) patch.autoSendDay = data.autoSendDay;
+    if (data.hasSeenOnboarding !== undefined) patch.hasSeenOnboarding = data.hasSeenOnboarding;
 
     const user = await prisma.user.update({ where: { id: req.userId }, data: patch });
     res.json({ user: publicUser(user) });

@@ -22,6 +22,7 @@ export interface User {
   trialEndsAt: string | null;
   trialDaysLeft: number;
   demoMode?: boolean;
+  hasSeenOnboarding?: boolean;
 }
 
 export interface OwnerSummary {
