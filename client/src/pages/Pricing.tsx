@@ -21,6 +21,9 @@ const FAQ = [
   ["¿Puedo cambiar de plan más adelante?", "Sí, puedes subir o bajar de plan en cualquier momento desde tu cuenta. El cambio se aplica al instante."],
   ["¿Qué pasa si supero el número de propiedades?", "Te avisamos y podrás pasar a un plan superior. Nunca perderás tus datos."],
   ["¿En qué se diferencia Rentrik de otros software?", "La mayoría de herramientas te dicen cuánto has ingresado. Rentrik te dice cuánto has ganado de verdad. Descontamos todos tus gastos reales — limpieza, mantenimiento, comisiones, plataformas — y te damos la rentabilidad neta por propiedad. En español, pensado para el mercado hispanohablante, sin traducciones automáticas ni curvas de aprendizaje."],
+  ["¿No puedo ver esto en mi PMS?", "Los PMS como Hostaway, Guesty o Lodgify te dicen cuántas reservas tienes y cuánto ingresas. Rentrik te dice cuánto ganas de verdad — descontando todos tus gastos reales. Son herramientas complementarias, no lo mismo."],
+  ["¿No hace esto PriceLabs?", "PriceLabs optimiza tus precios para que ingreses más. Rentrik te dice cuánto te queda después de todos los gastos. PriceLabs trabaja en los ingresos, Rentrik trabaja en la rentabilidad neta real. Son cosas distintas."],
+  ["¿No puedo hacer esto con ChatGPT o Claude?", "Puedes intentarlo, pero tendrías que exportar tus datos, formatearlos, escribir los prompts correctos y hacer los cálculos manualmente cada mes. Rentrik lo hace automáticamente en 5 minutos, con informes listos para tu gestor o banco, sin que tengas que tocar nada."],
 ];
 
 export default function Pricing({ publicView = false }: { publicView?: boolean }) {
