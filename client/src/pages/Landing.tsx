@@ -2,6 +2,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Logo } from "../components/Logo";
 
+const PAIN_POINTS = [
+  "¿Sabes cuánto te cuesta realmente cada limpieza?",
+  "¿Conoces el margen neto de cada propiedad después de comisiones?",
+  "¿Tienes un informe listo para enviárselo a tu banco o gestor?",
+  "¿Sabes qué propiedad te da más rentabilidad real?",
+];
+
 const features = [
   {
     title: "Sube tus ingresos de cualquier OTA",
@@ -107,7 +114,7 @@ export default function Landing() {
               <span className="h-1.5 w-1.5 rounded-full bg-positive" />
               Para gestores y propietarios de alquiler vacacional
             </span>
-            <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-extrabold leading-[1.08] tracking-tightest text-ink animate-fadeUp sm:text-5xl">
+            <h1 className="mx-auto mt-6 max-w-3xl text-[1.75rem] font-extrabold leading-[1.15] tracking-tight text-ink animate-fadeUp min-[420px]:text-[2rem] sm:text-5xl sm:leading-[1.08] sm:tracking-tightest">
               ¿Estás{" "}
               <span className="relative whitespace-nowrap text-brand">
                 ganando dinero
@@ -141,6 +148,35 @@ export default function Landing() {
           <div id="producto" className="relative mx-auto mt-14 max-w-4xl animate-fadeUp">
             <div className="absolute -inset-x-8 -top-8 bottom-0 rounded-[2rem] bg-brand-gradient opacity-[0.08] blur-2xl" />
             <DashboardMockup />
+          </div>
+        </div>
+      </section>
+
+      {/* Pain points */}
+      <section className="section py-16 sm:py-20">
+        <div className="mx-auto max-w-4xl text-center">
+          <span className="eyebrow">
+            <span className="h-1.5 w-1.5 rounded-full bg-positive" />
+            Pregúntate esto
+          </span>
+          <h2 className="mx-auto mt-4 max-w-2xl text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+            Si no sabes responder, estás perdiendo dinero
+          </h2>
+          <p className="mx-auto mt-3 max-w-xl text-slate-500">
+            Cuatro preguntas que todo propietario debería saber contestar sobre su alquiler.
+          </p>
+          <div className="mt-10 grid gap-4 text-left sm:grid-cols-2">
+            {PAIN_POINTS.map((q) => (
+              <div
+                key={q}
+                className="flex items-start gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-soft"
+              >
+                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand/8 text-lg font-extrabold text-brand">
+                  ?
+                </span>
+                <p className="text-base font-semibold leading-snug text-ink">{q}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

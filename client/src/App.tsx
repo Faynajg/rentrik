@@ -23,6 +23,7 @@ import { Terminos, Privacidad, AvisoLegal, Cookies } from "./pages/Legal";
 import PortalLogin from "./pages/portal/PortalLogin";
 import PortalDashboard from "./pages/portal/PortalDashboard";
 import PortalPropertyDetail from "./pages/portal/PortalPropertyDetail";
+import { CookieBanner } from "./components/CookieBanner";
 
 // Estados de suscripción que dan acceso a la app (trial de Stripe incluido).
 const SUBSCRIBED = new Set(["trialing", "active", "past_due"]);
@@ -61,6 +62,7 @@ function PortalProtected({ children }: { children: ReactNode }) {
 
 export default function App() {
   return (
+    <>
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<PublicOnly><Login /></PublicOnly>} />
@@ -92,5 +94,7 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    <CookieBanner />
+    </>
   );
 }
