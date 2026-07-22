@@ -2,6 +2,13 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Logo } from "../components/Logo";
 
+// FAQs de la home: rebaten las objeciones más frecuentes antes de llegar a precios.
+const HOME_FAQ: [string, string][] = [
+  ["¿No puedo ver esto en mi PMS?", "Los PMS como Hostaway, Guesty o Lodgify te dicen cuántas reservas tienes y cuánto ingresas. Rentrik te dice cuánto ganas de verdad — descontando todos tus gastos reales. Son herramientas complementarias, no lo mismo."],
+  ["¿No hace esto PriceLabs?", "PriceLabs optimiza tus precios para que ingreses más. Rentrik te dice cuánto te queda después de todos los gastos. PriceLabs trabaja en los ingresos, Rentrik trabaja en la rentabilidad neta real. Son cosas distintas."],
+  ["¿No puedo hacer esto con ChatGPT o Claude?", "Puedes intentarlo, pero tendrías que exportar tus datos, formatearlos, escribir los prompts correctos y hacer los cálculos manualmente cada mes. Rentrik lo hace automáticamente en 5 minutos, con informes listos para tu gestor o banco, sin que tengas que tocar nada."],
+];
+
 const PAIN_POINTS = [
   "¿Sabes cuánto te cuesta realmente cada limpieza?",
   "¿Conoces el margen neto de cada propiedad después de comisiones?",
@@ -287,6 +294,29 @@ export default function Landing() {
                 <p className="text-4xl font-extrabold tracking-tight text-white">{big}</p>
                 <p className="mt-1 text-sm text-brand-100">{small}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ — rebate objeciones antes de precios */}
+      <section className="section py-16 sm:py-20">
+        <div className="mx-auto max-w-2xl">
+          <h2 className="text-center text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+            Sí, Rentrik es diferente
+          </h2>
+          <p className="mt-3 text-center text-slate-500">
+            Las dudas que todo el mundo tiene antes de probarlo.
+          </p>
+          <div className="mt-8 space-y-3">
+            {HOME_FAQ.map(([q, a]) => (
+              <details key={q} className="group card px-5 py-4">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-ink">
+                  {q}
+                  <svg className="shrink-0 text-slate-400 transition group-open:rotate-45" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-slate-500">{a}</p>
+              </details>
             ))}
           </div>
         </div>
